@@ -52,50 +52,6 @@ export function GrowthView({ workspace, toggleHabit }: GrowthViewProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* 毕业论文（硕士论文节奏） */}
-      <section className="workspace-pane">
-        <div className="section-label mb-3">毕业论文</div>
-        <div className="flex flex-col">
-          {[
-            { title: "选题", due: "9月", done: false },
-            { title: "开题", due: "10月", done: false },
-            { title: "初稿写作", due: "次年1-3月", done: false },
-            { title: "答辩", due: "次年5月", done: false },
-          ].map((s, i, arr) => (
-            <div key={s.title} className="flex items-center gap-3 py-2.5 border-b border-[#F1F1F3] last:border-0">
-              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${
-                s.done ? "bg-[#27272A] text-white" : "bg-[#F1F1F3] text-[#71717A]"
-              }`}>{i + 1}</span>
-              <span className={`flex-1 text-[13px] ${s.done ? "line-through text-[#A1A1AA]" : "text-[#18181B]"}`}>{s.title}</span>
-              <span className="text-[11px] text-[#A1A1AA]">{s.due}</span>
-              {i < arr.length - 1 && !s.done && <span className="text-[10px] text-[#DC2626]">← 当前</span>}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 读博申请（博士申请节奏） */}
-      <section className="workspace-pane">
-        <div className="section-label mb-3">读博申请</div>
-        <div className="flex flex-col">
-          {[
-            { title: "联系导师", due: "10月", done: false },
-            { title: "准备申请材料", due: "11月", done: false },
-            { title: "提交申请", due: "12月", done: false },
-            { title: "面试 / 等 offer", due: "次年1-3月", done: false },
-          ].map((s, i, arr) => (
-            <div key={s.title} className="flex items-center gap-3 py-2.5 border-b border-[#F1F1F3] last:border-0">
-              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${
-                s.done ? "bg-[#27272A] text-white" : "bg-[#F1F1F3] text-[#71717A]"
-              }`}>{i + 1}</span>
-              <span className={`flex-1 text-[13px] ${s.done ? "line-through text-[#A1A1AA]" : "text-[#18181B]"}`}>{s.title}</span>
-              <span className="text-[11px] text-[#A1A1AA]">{s.due}</span>
-              {i < arr.length - 1 && !s.done && <span className="text-[10px] text-[#DC2626]">← 当前</span>}
-            </div>
-          ))}
-        </div>
-      </section>
-
       {/* 习惯追踪 */}
       <section className="workspace-pane">
         <div className="section-label mb-3">习惯 · 连续天数</div>

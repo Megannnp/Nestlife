@@ -32,7 +32,8 @@ export function currentPeriods(now = new Date()): { daily: string; weekly: strin
   return {
     daily: dateLocal(now),
     weekly: isoWeekKey(now),
-    monthly: now.toISOString().slice(0, 7),
+    // 用本地日期取月（toISOString 是 UTC，东八区每月 1 日 0-8 点会错一个月）
+    monthly: dateLocal(now).slice(0, 7),
   };
 }
 

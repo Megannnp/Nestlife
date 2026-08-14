@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:unit": "node --test tests/unit.test.mjs",
+    "test:unit": "node --test --test-concurrency=1 tests/unit.test.mjs",
     "test:api": "node --test tests/api.test.mjs",
     "test:auth": "node --test tests/auth.test.mjs",
     "test:init": "node --test tests/init.test.mjs",

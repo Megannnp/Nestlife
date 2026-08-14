@@ -137,7 +137,7 @@ export function DecisionsView({ setActiveView }: DecisionsViewProps) {
           <p className="text-[13px] font-semibold text-[#18181B] mb-1">
             {decisions.length === 0 ? "还没有决策记录" : "该分类下没有决策"}
           </p>
-          <p className="text-[12px] text-[#A1A1AA]">在对话里做出决定（如「训练营改成录播课」），AI 助手 会自动记录到这里</p>
+          <p className="text-[12px] text-[#A1A1AA]">在对话里做出决定（如「就定方案B」），AI 助手 会自动记录到这里</p>
         </section>
       ) : (
         <div className="flex flex-col gap-2">

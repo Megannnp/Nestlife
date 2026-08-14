@@ -233,7 +233,7 @@ export type DailyNote = {
 
 export type Decision = {
   id: string;
-  /** 决策标题：如 训练营改成录播课 */
+  /** 决策标题：如 改用方案B */
   title: string;
   /** 背景：为什么面临这个选择 */
   context: string;
