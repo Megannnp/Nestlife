@@ -1,0 +1,16 @@
+# NestLife 私有部署 — docker compose
+# 用法：
+#   cp .env.example .env   # 按需修改
+#   docker compose up -d
+services:
+  nestlife:
+    build: .
+    image: nestlife:latest
+    container_name: nestlife
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    env_file:
+      - .env
+    volumes:
+      - ./data:/data

@@ -1,0 +1,15 @@
+node_modules
+.next
+data
+dist
+.git
+.gitignore
+*.log
+.DS_Store
+.env
+.env.*
+AGENTS.md
+CLAUDE.md
+docs
+deploy
+tests

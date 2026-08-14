@@ -1,0 +1,21 @@
+# NestLife systemd 服务单元（Linux）
+# 安装：sudo cp deploy/nestlife.service /etc/systemd/system/
+#       编辑下面 User/WorkingDirectory 与 EnvironmentFile 路径后：
+#       sudo systemctl daemon-reload && sudo systemctl enable --now nestlife
+[Unit]
+Description=NestLife - Personal Growth & Career OS
+After=network.target
+
+[Service]
+Type=simple
+User=nestlife
+Group=nestlife
+WorkingDirectory=/opt/nestlife
+EnvironmentFile=/opt/nestlife/.env
+ExecStart=/usr/bin/npm run start -- -p 3100
+Restart=always
+RestartSec=5
+# 数据目录权限：/var/lib/nestlife 属主 nestlife
+
+[Install]
+WantedBy=multi-user.target

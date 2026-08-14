@@ -1,0 +1,58 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+!.env.example
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# 本地数据（敏感个人数据，不进 git）
+data/
+
+# 交付打包产物
+dist/
+
+tests/tmp-parse-test-*.ts
+
+# 内部开发文档（不公开）
+AGENTS.md
+CLAUDE.md
+
+# 内部截图（可能含真实数据）与内部脚本
+docs/
+scripts/sync_nestlife_projects.py
