@@ -221,6 +221,39 @@ test("PUT /api/workspace 保存（no-op 原样回写，验证不丢数据）", a
   assert.equal(after.tasks.length, before.tasks.length, "任务数不应变化");
 });
 
+test("PUT workspace 删除项目后不复活（独立表删除同步）", async () => {
+  const { DatabaseSync } = await import("node:sqlite");
+  const dbPath = process.env.NESTLIFE_DATA ? `${process.env.NESTLIFE_DATA}/nestlife.db` : `${process.cwd()}/data/nestlife.db`;
+  const proj = { id: "p-bugtest", name: "测试项目", emoji: "📁", status: "active", tagline: "", nextSteps: [], blockers: [], progress: 10, createdAt: "2026-08-14" };
+  // 0. 备份当前快照，测试后还原
+  const orig = await fetch(`${BASE}/api/workspace`).then((r) => r.json());
+  try {
+    // 1. 基于完整快照添加项目（不覆盖其他字段）
+    await fetch(`${BASE}/api/workspace`, {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ snapshot: { ...orig.snapshot, projects: [...(orig.snapshot.projects ?? []), proj] } }),
+    });
+    let d = await fetch(`${BASE}/api/workspace`).then((r) => r.json());
+    assert.ok(d.snapshot.projects?.some((p) => p.id === "p-bugtest"), "应添加成功");
+    // 2. 删除（还原为原始项目列表）
+    await fetch(`${BASE}/api/workspace`, {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ snapshot: { ...orig.snapshot, projects: orig.snapshot.projects ?? [] } }),
+    });
+    // 3. GET 不应复活
+    d = await fetch(`${BASE}/api/workspace`).then((r) => r.json());
+    assert.ok(!d.snapshot.projects?.some((p) => p.id === "p-bugtest"), "删除后不应复活");
+  } finally {
+    // 4. 兜底清理 DB（防中途失败残留）
+    const db = new DatabaseSync(dbPath);
+    db.prepare("DELETE FROM projects WHERE id = ?").run("p-bugtest");
+    db.prepare("DELETE FROM milestones WHERE project_id = ?").run("p-bugtest");
+    db.close();
+  }
+});
+
 test("POST /api/reviews 保存复盘并可读回", async () => {
   const period = "2099-12-31"; // 测试专属 period，避免撞真实数据
   const post = await fetch(`${BASE}/api/reviews`, {

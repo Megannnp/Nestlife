@@ -41,50 +41,83 @@ export async function GET() {
   return NextResponse.json({ snapshot, tasks });
 }
 
-/** 前端保存时同步到独立表 */
+/** 前端保存时同步到独立表（upsert + 删除已移除的，防止数据"复活"） */
 function syncTables(snapshot: Record<string, unknown>) {
   try {
     const db = getDb();
     // goals
     if (Array.isArray(snapshot.goals)) {
+      const seen = new Set<string>();
       for (const g of snapshot.goals as Record<string, unknown>[]) {
+        seen.add(String(g.id));
         db.prepare(`INSERT INTO goals (id, branch_id, level, title, measure, due_date, progress, done, parent_id, created_at)
           VALUES (?,?,?,?,?,?,?,?,?,?)
           ON CONFLICT(id) DO UPDATE SET branch_id=excluded.branch_id, level=excluded.level, title=excluded.title,
             measure=excluded.measure, due_date=excluded.due_date, progress=excluded.progress, done=excluded.done, parent_id=excluded.parent_id`)
           .run(String(g.id), String(g.branchId ?? "career"), String(g.level ?? "mid"), String(g.title), String(g.measure ?? ""), g.dueDate ? String(g.dueDate) : null, Number(g.progress ?? 0), g.done ? 1 : 0, g.parentId ? String(g.parentId) : null, String(g.createdAt ?? ""));
       }
+      removeGone(db, "goals", seen);
     }
     // habits
     if (Array.isArray(snapshot.habits)) {
+      const seen = new Set<string>();
       for (const h of snapshot.habits as Record<string, unknown>[]) {
+        seen.add(String(h.id));
         db.prepare(`INSERT INTO habits (id, name, emoji, done_dates, created_at)
           VALUES (?,?,?,?,?)
           ON CONFLICT(id) DO UPDATE SET name=excluded.name, emoji=excluded.emoji, done_dates=excluded.done_dates`)
           .run(String(h.id), String(h.name), String(h.emoji ?? "✅"), JSON.stringify(h.doneDates ?? []), String(h.createdAt ?? ""));
       }
+      removeGone(db, "habits", seen);
     }
     // projects
     if (Array.isArray(snapshot.projects)) {
+      const seen = new Set<string>();
       for (const p of snapshot.projects as Record<string, unknown>[]) {
+        seen.add(String(p.id));
         db.prepare(`INSERT INTO projects (id, name, emoji, status, tagline, next_steps, blockers, active_items, progress, created_at)
           VALUES (?,?,?,?,?,?,?,?,?,?)
           ON CONFLICT(id) DO UPDATE SET name=excluded.name, emoji=excluded.emoji, status=excluded.status, tagline=excluded.tagline,
             next_steps=excluded.next_steps, blockers=excluded.blockers, active_items=excluded.active_items, progress=excluded.progress`)
           .run(String(p.id), String(p.name), String(p.emoji ?? "📁"), String(p.status ?? "active"), String(p.tagline ?? ""), JSON.stringify(p.nextSteps ?? []), JSON.stringify(p.blockers ?? []), JSON.stringify(p.activeItems ?? []), Number(p.progress ?? 0), String(p.createdAt ?? ""));
       }
+      removeGone(db, "projects", seen);
+      // 项目删除后，其里程碑一并清理
+      if (Array.isArray(snapshot.milestones)) {
+        const projectIds = new Set((snapshot.projects as Record<string, unknown>[]).map((x) => String(x.id)));
+        const mRows = db.prepare("SELECT id FROM milestones").all() as { id: string }[];
+        for (const m of mRows) {
+          const row = db.prepare("SELECT project_id FROM milestones WHERE id = ?").get(String(m.id)) as { project_id: string } | undefined;
+          if (row && !projectIds.has(String(row.project_id))) {
+            db.prepare("DELETE FROM milestones WHERE id = ?").run(String(m.id));
+          }
+        }
+      }
     }
     // milestones
     if (Array.isArray(snapshot.milestones)) {
+      const seen = new Set<string>();
       for (const m of snapshot.milestones as Record<string, unknown>[]) {
+        seen.add(String(m.id));
         db.prepare(`INSERT INTO milestones (id, project_id, title, due_date, done)
           VALUES (?,?,?,?,?)
           ON CONFLICT(id) DO UPDATE SET project_id=excluded.project_id, title=excluded.title, due_date=excluded.due_date, done=excluded.done`)
           .run(String(m.id), String(m.projectId), String(m.title), String(m.dueDate), m.done ? 1 : 0);
       }
+      removeGone(db, "milestones", seen);
     }
   } catch {
     // 表不存在时静默（快照仍是主源）
+  }
+}
+
+/** 删除表中不在快照集合里的记录（防止删除后数据"复活"） */
+function removeGone(db: ReturnType<typeof getDb>, table: string, keepIds: Set<string>) {
+  const rows = db.prepare(`SELECT id FROM ${table}`).all() as { id: string }[];
+  for (const r of rows) {
+    if (!keepIds.has(String(r.id))) {
+      db.prepare(`DELETE FROM ${table} WHERE id = ?`).run(String(r.id));
+    }
   }
 }
 
