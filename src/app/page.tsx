@@ -23,6 +23,8 @@ export default function Home() {
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [activeView, setActiveView] = useState<LifeView>("today");
   const [commandOpen, setCommandOpen] = useState(false);
+  // 最近一次本地编辑时间戳：60s 轮询在编辑后短暂跳过，避免用服务器旧数据覆盖用户正在输入的改动
+  const lastEditRef = useRef(0);
 
   // ─── AI 助手全局状态（提升到 Home：切换页面不丢，在途请求照常完成） ───
   // 恢复历史放 lazy initializer（SSR 首帧是「加载中…」，无 hydration 冲突）
@@ -148,6 +150,8 @@ export default function Home() {
   // 保留本地优先：只在用户没有正在编辑时刷新（简单方案：拉取后合并）
   useEffect(() => {
     const timer = setInterval(async () => {
+      // 用户最近 3 秒内编辑过 → 跳过本轮刷新（等自动保存落地后再同步，避免覆盖未保存输入）
+      if (Date.now() - lastEditRef.current < 3000) return;
       try {
         const res = await fetch("/api/workspace");
         const data = await res.json();
@@ -208,6 +212,7 @@ export default function Home() {
   }, []);
 
   const update = useCallback((fn: (w: Workspace) => Workspace) => {
+    lastEditRef.current = Date.now();
     setWorkspace((prev) => (prev ? fn(prev) : prev));
   }, []);
 
