@@ -6,6 +6,7 @@
   <img src="https://img.shields.io/badge/授权-个人免费%20·%20商用授权-green">
   <img src="https://img.shields.io/badge/Node.js-%3E%3D22.5-blue">
   <img src="https://img.shields.io/badge/Stack-Next.js%2016%20·%20SQLite%20·%20Tailwind-blueviolet">
+  <img src="https://github.com/Megannnp/Nestlife/actions/workflows/ci.yml/badge.svg" alt="CI">
 </p>
 
 # NestLife™

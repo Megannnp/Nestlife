@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      - name: Start server (for API tests)
+        run: |
+          NESTLIFE_DATA="$RUNNER_TEMP/nestlife-data" nohup npm run start -- -p 3100 > server.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:3100/ >/dev/null && break
+            sleep 2
+          done
+          curl -sf http://localhost:3100/ >/dev/null
+
+      - name: API tests
+        run: npm run test:api
+        env:
+          NESTLIFE_DATA: "$RUNNER_TEMP/nestlife-data"
+
+      - name: Stop server
+        run: pkill -f 'next-server' || true
+
+      - name: Auth tests (auto-spawns production server)
+        run: npm run test:auth
+
+      - name: First-run init tests
+        run: npm run test:init
+
+      - name: Audit
+        run: npm audit --audit-level=high
