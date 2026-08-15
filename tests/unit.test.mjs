@@ -137,7 +137,7 @@ test("review-period: 月初凌晨月键取本地月（非 UTC）", async () => {
 
 // ─── 每日汇总脚本（DB 独立测试，用临时目录） ───
 test("daily-summary: 脚本可运行且生成任务", () => {
-  const out = execSync("node scripts/daily-summary.mjs 2>/dev/null", {
+  const out = execSync(`NESTLIFE_DATA=/tmp/nestlife-unit-${Date.now()} node scripts/daily-summary.mjs 2>&1`, {
     cwd: new URL("..", import.meta.url).pathname,
     encoding: "utf-8",
   });
