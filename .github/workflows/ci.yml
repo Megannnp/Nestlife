@@ -13,11 +13,14 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Rebuild native deps (linux)
+        run: npm rebuild || true
 
       - name: Lint
         run: npm run lint
