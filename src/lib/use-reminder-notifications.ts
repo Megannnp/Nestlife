@@ -38,8 +38,8 @@ export function useReminderNotifications(reminders: Reminder[]) {
         if (r.date !== "" && r.date !== today) continue;
         if (r.time !== timeStr) continue;
         const key = `${r.id}-${today}-${timeStr}`;
-        if (firedRef.current.has(key)) continue;
-        firedRef.current.add(key);
+        if (firedRef.has(key)) continue;
+        firedRef.add(key);
 
         try {
           new Notification(`⏰ ${r.title}`, {
