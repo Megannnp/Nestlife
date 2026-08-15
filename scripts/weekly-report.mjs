@@ -19,6 +19,8 @@ const REPORTS_DIR = path.join(DATA_DIR, "reports");
 const BRANCH_LABEL = { career: "🏗️ 事业", growth: "🌱 成长", life: "🏡 生活" };
 
 function getDb() {
+  // 数据目录可能不存在（全新部署/CI），先创建
+  fs.mkdirSync(DATA_DIR, { recursive: true });
   const db = new DatabaseSync(DB_FILE);
   db.exec(`
     CREATE TABLE IF NOT EXISTS tasks (

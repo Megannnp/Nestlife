@@ -83,6 +83,7 @@ function gitLastCommit(dir) {
 }
 
 function getDb() {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
   const db = new DatabaseSync(DB_FILE);
   db.exec(`
     CREATE TABLE IF NOT EXISTS project_activity (

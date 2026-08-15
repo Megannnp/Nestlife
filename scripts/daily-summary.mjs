@@ -1,4 +1,5 @@
 import { DatabaseSync } from "node:sqlite";
+import fs from "fs";
 import path from "path";
 
 /**
@@ -12,6 +13,8 @@ const DATA_DIR = process.env.NESTLIFE_DATA || path.join(process.env.HOME || "", 
 const DB_FILE = path.join(DATA_DIR, "nestlife.db");
 
 function getDb() {
+  // 数据目录可能不存在（全新部署/CI），先创建
+  fs.mkdirSync(DATA_DIR, { recursive: true });
   const db = new DatabaseSync(DB_FILE);
   db.exec(`
     CREATE TABLE IF NOT EXISTS tasks (

@@ -8,6 +8,7 @@ import path from "path";
 const HOME = process.env.HOME || "";
 const DB_FILE = path.join(process.env.NESTLIFE_DATA || path.join(HOME, ".nestlife", "data"), "nestlife.db");
 
+fs.mkdirSync(path.dirname(DB_FILE), { recursive: true });
 const db = new DatabaseSync(DB_FILE);
 db.exec(`
   CREATE TABLE IF NOT EXISTS goals (
