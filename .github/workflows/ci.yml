@@ -33,7 +33,7 @@ jobs:
 
       - name: Start server (for API tests)
         run: |
-          NESTLIFE_DATA="$RUNNER_TEMP/nestlife-data" nohup npm run start -- -p 3100 > server.log 2>&1 &
+          NESTLIFE_DATA="${{ runner.temp }}/nestlife-data" nohup npm run start -- -p 3100 > server.log 2>&1 &
           for i in $(seq 1 30); do
             curl -sf http://localhost:3100/ >/dev/null && break
             sleep 2
@@ -43,7 +43,7 @@ jobs:
       - name: API tests
         run: npm run test:api
         env:
-          NESTLIFE_DATA: "$RUNNER_TEMP/nestlife-data"
+          NESTLIFE_DATA: "${{ runner.temp }}/nestlife-data"
 
       - name: Stop server
         run: pkill -f 'next-server' || true
