@@ -76,7 +76,7 @@ export async function POST(req: Request) {
       good: String(good ?? ""),
       problems: String(problems ?? ""),
       next: String(next ?? ""),
-      mood: Number(mood ?? 3),
+      mood: Math.min(5, Math.max(1, Math.round(Number(mood ?? 3)))),
     });
     return NextResponse.json({ ok: true, review: saved });
   } catch (e) {

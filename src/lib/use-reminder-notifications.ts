@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import type { Reminder } from "./types.ts";
-import { dateLocal } from "../lib/date-local.ts";
+import { dateLocal } from "./date-local.ts";
 
 /**
  * 提醒通知 Hook — 到点弹浏览器通知
@@ -11,8 +11,10 @@ import { dateLocal } from "../lib/date-local.ts";
 
 const CHECK_MS = 60_000;
 
+// 模块级已触发集合：跨组件挂载保持（切页面回来不会在同分钟重复弹通知）
+const firedRef = new Set<string>();
+
 export function useReminderNotifications(reminders: Reminder[]) {
-  const firedRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     // 请求通知权限（用户手势后更好，但首次自动请求也行）
