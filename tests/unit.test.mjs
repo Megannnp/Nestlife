@@ -84,6 +84,34 @@ test("parse-task: 下周一（周三说）", () => {
   assert.equal(r.date, "2026-08-10");
 });
 
+test("parse-task: 今晚8点 → 20:00（时段语义）", () => {
+  const r = parse("今晚8点看书", "2026-08-03T10:00:00");
+  assert.equal(r.startTime, "20:00");
+});
+
+test("parse-task: 明早7点 → 明天 + 07:00", () => {
+  const r = parse("明早7点跑步", "2026-08-03T10:00:00");
+  assert.equal(r.date, "2026-08-04");
+  assert.equal(r.startTime, "07:00");
+  assert.equal(r.title, "跑步");
+});
+
+test("parse-task: 两点半 → 2:30 + 标题干净", () => {
+  const r = parse("两点半开会", "2026-08-03T10:00:00");
+  assert.equal(r.startTime, "02:30");
+  assert.equal(r.title, "开会");
+});
+
+test("parse-task: 上午10点 → 10:00（不被"午"误判为中午）", () => {
+  const r = parse("今天上午10点开会", "2026-08-03T10:00:00");
+  assert.equal(r.startTime, "10:00");
+});
+
+test("parse-task: 下周三 → 标题干净", () => {
+  const r = parse("下周三交报告", "2026-08-03T10:00:00");
+  assert.equal(r.title, "交报告");
+});
+
 // ─── 热力图逻辑测试 ───
 test("heatmap: 周一起始偏移", async () => {
   const { monBasedOffsetOf } = await import("../src/lib/heatmap.ts");
