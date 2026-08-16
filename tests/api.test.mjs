@@ -100,6 +100,15 @@ test("路径穿越防护：知识文件接口拒绝越界", async () => {
   assert.equal(res.status, 403);
 });
 
+test("路径穿越防护：知识上传 dir 参数拒绝越界", async () => {
+  // 构造 multipart 上传：dir=../evil 应被 400 拒绝（防任意文件写入）
+  const form = new FormData();
+  form.append("file", new Blob(["x"], { type: "text/plain" }), "pwn.txt");
+  form.append("dir", "../evil");
+  const res = await fetch(`${BASE}/api/knowledge`, { method: "POST", body: form });
+  assert.equal(res.status, 400, "dir 越界应 400");
+});
+
 test("POST /api/ai-config 保存/脱敏/清除", async () => {
   const base = "http://localhost:3100/api/ai-config";
   // 保存

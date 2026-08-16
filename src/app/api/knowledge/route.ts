@@ -106,8 +106,12 @@ export async function POST(req: Request) {
   try {
     const form = await req.formData();
     const file = form.get("file");
-    // 可选子目录：dir=我的文档
+    // 可选子目录：dir=我的文档（严格限制在 KB_DIR 内，防路径穿越）
     const dir = String(form.get("dir") || "").replace(/^\/+|\/+$/g, "");
+    const targetDir = dir ? path.resolve(KB_DIR, dir) : KB_DIR;
+    if (targetDir !== KB_DIR && !targetDir.startsWith(KB_DIR + path.sep)) {
+      return NextResponse.json({ error: "invalid dir" }, { status: 400 });
+    }
 
     if (!(file instanceof File)) {
       return NextResponse.json({ error: "file required" }, { status: 400 });
@@ -125,7 +129,6 @@ export async function POST(req: Request) {
 
     // 防重名：加时间戳后缀
     let filename = file.name;
-    const targetDir = dir ? path.join(KB_DIR, dir) : KB_DIR;
     fs.mkdirSync(targetDir, { recursive: true });
 
     let abs = path.resolve(targetDir, filename);
