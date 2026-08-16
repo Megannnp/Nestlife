@@ -190,14 +190,21 @@ export default function Home() {
     return () => clearInterval(timer);
   }, []);
 
-  // 自动保存（防抖 800ms，避免频繁写库）
+  // 自动保存（防抖 800ms，避免频繁写库）；失败时页面顶部提示，避免静默丢数据
+  const [saveError, setSaveError] = useState(false);
   useEffect(() => {
     if (!workspace) return;
-    const t = setTimeout(() => {
-      saveWorkspaceAsync(workspace);
+    const t = setTimeout(async () => {
+      const ok = await saveWorkspaceAsync(workspace);
+      if (!ok) {
+        setSaveError(true);
+        console.warn("[NestLife] 自动保存失败");
+      } else if (saveError) {
+        setSaveError(false);
+      }
     }, 800);
     return () => clearTimeout(t);
-  }, [workspace]);
+  }, [workspace, saveError]);
 
   // ⌘K 全局快捷键
   useEffect(() => {
@@ -313,6 +320,12 @@ export default function Home() {
   return (
     <ToastProvider>
     <div className="min-h-screen">
+      {/* 保存失败警示（自动保存异常时出现，防止静默丢数据） */}
+      {saveError && (
+        <div className="sticky top-0 z-[150] bg-[#FEE2E2] border-b border-[#FECACA] px-4 py-2 text-[12px] font-semibold text-[#DC2626] text-center">
+          ⚠️ 数据保存失败——请检查服务连接，避免丢失最近的修改
+        </div>
+      )}
       {/* 移动端顶部导航（小屏显示，lg 隐藏） */}
       <div className="lg:hidden sticky top-0 z-20 bg-white/92 backdrop-blur-[12px] border-b border-[#E4E4E7] px-4 py-2.5 flex items-center gap-2 overflow-x-auto">
         <span className="text-[14px] font-semibold text-[#18181B] shrink-0 mr-1">🪺 筑巢人生</span>
