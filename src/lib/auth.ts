@@ -28,3 +28,35 @@ export function safeEqual(a: string, b: string): boolean {
 
 export const SESSION_COOKIE_NAME = SESSION_COOKIE;
 export const SESSION_MAX_AGE_SEC = SESSION_MAX_AGE;
+
+/** ═══ 登录限流（防暴力破解，内存实现，重启重置） ═══ */
+
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCK_MS = 10 * 60 * 1000;
+const loginAttempts = new Map<string, { count: number; lockedUntil: number }>();
+
+export function checkLoginLock(ip: string): { locked: boolean; retryAfterSec?: number } {
+  const rec = loginAttempts.get(ip);
+  if (!rec) return { locked: false };
+  if (rec.lockedUntil > Date.now()) {
+    return { locked: true, retryAfterSec: Math.ceil((rec.lockedUntil - Date.now()) / 1000) };
+  }
+  if (rec.lockedUntil > 0 && rec.lockedUntil <= Date.now()) {
+    loginAttempts.delete(ip); // 锁过期自动重置
+  }
+  return { locked: false };
+}
+
+export function recordLoginFailure(ip: string) {
+  const rec = loginAttempts.get(ip) ?? { count: 0, lockedUntil: 0 };
+  rec.count += 1;
+  if (rec.count >= MAX_LOGIN_ATTEMPTS) {
+    rec.lockedUntil = Date.now() + LOCK_MS;
+    rec.count = 0;
+  }
+  loginAttempts.set(ip, rec);
+}
+
+export function clearLoginFailures(ip: string) {
+  loginAttempts.delete(ip);
+}

@@ -83,3 +83,21 @@ test("正确密码登录后 API 可访问", async () => {
   const res = await fetch(`${BASE}/api/workspace`, { headers: { cookie } });
   assert.equal(res.status, 200, "带 cookie 应可访问 API");
 });
+
+test("登录限流：连续失败后锁定（429）", async () => {
+  // 连续 5 次错误密码（累计触发锁）
+  for (let i = 0; i < 5; i++) {
+    await fetch(`${BASE}/api/auth/login`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ password: "wrong" }),
+    });
+  }
+  // 第 6 次应被限流
+  const res = await fetch(`${BASE}/api/auth/login`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ password: "wrong" }),
+  });
+  assert.equal(res.status, 429, "连续失败后应 429");
+});
