@@ -341,6 +341,14 @@ export default function Home() {
             {item.label}
           </button>
         ))}
+        {/* 手机端命令面板入口（无 ⌘K 快捷键，需可见按钮） */}
+        <button
+          onClick={() => setCommandOpen(true)}
+          aria-label="打开命令面板"
+          className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-[8px] text-[12px] font-semibold bg-[#18181B] text-white ml-1"
+        >
+          <span>⌘</span> 面板
+        </button>
       </div>
       <Sidebar
         activeView={activeView}
