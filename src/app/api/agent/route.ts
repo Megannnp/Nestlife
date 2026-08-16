@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import { OPENCLAW_URL, OPENCLAW_TOKEN } from "../../../lib/config.ts";
 import { readAiConfig } from "../../../lib/ai-config.ts";
+import { BUILTIN_TOOLS, BUILTIN_SYSTEM, execTool } from "../../../lib/agent-exec.ts";
 
 /**
  * AI 助手接口：NestLife → AI 执行器网关（OpenAI 兼容端点 /v1/chat/completions）
@@ -35,6 +36,53 @@ export async function GET() {
   return NextResponse.json({ enabled: readGatewayConfig() !== null });
 }
 
+/** 内置执行器：function calling 循环，让 DeepSeek/Ollama 等网关也能"对话即执行" */
+async function runBuiltin(
+  gw: { url: string; token: string },
+  messages: { role: string; content: string }[]
+): Promise<string> {
+  const msgs: Record<string, unknown>[] = [
+    { role: "system", content: BUILTIN_SYSTEM },
+    ...messages.filter((m) => m.role !== "system"),
+  ];
+  let finalText = "";
+  for (let i = 0; i < 3; i++) {
+    const res = await fetch(gw.url, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        ...(gw.token ? { authorization: `Bearer ${gw.token}` } : {}),
+      },
+      body: JSON.stringify({ model: "openclaw", messages: msgs, tools: BUILTIN_TOOLS, max_tokens: 4096, stream: false }),
+      signal: AbortSignal.timeout(180_000),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`gateway ${res.status}: ${text.slice(0, 300)}`);
+    }
+    const data = await res.json();
+    const msg = data?.choices?.[0]?.message;
+    if (!msg) return "(无回复)";
+    if (msg.content) finalText = msg.content;
+    const calls = msg?.tool_calls ?? [];
+    if (!calls || calls.length === 0) break;
+
+    // 执行白名单工具，结果回传给 AI
+    msgs.push({ role: "assistant", content: msg.content ?? "", tool_calls: calls });
+    for (const call of calls) {
+      let args: Record<string, unknown> = {};
+      try {
+        args = JSON.parse(call.function?.arguments || "{}");
+      } catch {
+        /* 参数解析失败用空 */
+      }
+      const result = await execTool(String(call.function?.name ?? ""), args);
+      msgs.push({ role: "tool", tool_call_id: call.id, content: result });
+    }
+  }
+  return finalText || "(已完成)";
+}
+
 export async function POST(req: Request) {
   try {
     const gw = readGatewayConfig();
@@ -47,6 +95,21 @@ export async function POST(req: Request) {
     const { messages, stream } = await req.json();
     if (!Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json({ error: "messages required" }, { status: 400 });
+    }
+
+    // OpenClaw（默认端口 18789）→ 透传（OpenClaw 自带完整执行能力）
+    // 其他网关（DeepSeek / Ollama 等）→ 内置执行器（function calling 白名单工具）
+    const isOpenClaw = /18789/.test(gw.url);
+    if (!isOpenClaw) {
+      const content = await runBuiltin(gw, messages);
+      if (stream) {
+        // 用 SSE 包装，前端流式解析无需改动
+        const sse = `data: ${JSON.stringify({ choices: [{ delta: { content } }] })}\n\ndata: [DONE]\n\n`;
+        return new Response(sse, {
+          headers: { "content-type": "text/event-stream; charset=utf-8", "cache-control": "no-cache" },
+        });
+      }
+      return NextResponse.json({ content });
     }
 
     const res = await fetch(gw.url, {

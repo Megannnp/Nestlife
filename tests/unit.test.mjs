@@ -155,6 +155,24 @@ test("utils: 分支进度平均", async () => {
 });
 
 // ─── 复盘周期（时区）测试 ───
+// ─── 内置执行器（方案 F：任意网关对话即执行）───
+test("agent-exec: 内置工具定义合法", async () => {
+  const { BUILTIN_TOOLS } = await import("../src/lib/agent-exec.ts");
+  assert.ok(Array.isArray(BUILTIN_TOOLS) && BUILTIN_TOOLS.length >= 6, "应有至少 6 个工具");
+  for (const t of BUILTIN_TOOLS) {
+    assert.ok(t.function?.name, "工具应有名字");
+    assert.ok(t.function?.description, "工具应有描述");
+    assert.ok(t.function?.parameters?.type === "object", "参数应为 object");
+  }
+});
+
+test("agent-exec: 未知工具返回错误（不崩溃）", async () => {
+  const { execTool } = await import("../src/lib/agent-exec.ts");
+  const r = await execTool("nonexistent", {});
+  assert.ok(String(r).startsWith("❌"), "应返回错误");
+});
+
+
 test("review-period: 月初凌晨月键取本地月（非 UTC）", async () => {
   const { currentPeriods } = await import("../src/lib/review-period.ts");
   // 本地 8/1 00:30（东八区，UTC 仍是 7/31）→ 月键应为 2026-08
