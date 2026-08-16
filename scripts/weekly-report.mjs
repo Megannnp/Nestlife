@@ -145,9 +145,13 @@ function runWeeklyReport() {
     const monthAgo = new Date();
     monthAgo.setDate(monthAgo.getDate() - 30);
     for (const r of rows) {
-      const d = new Date(String(r.date || r.created_at || ""));
-      if (d >= weekAgo) weekDecisions.push(String(r.title));
-      if (String(r.status) === "accepted" && d < monthAgo) {
+      // 本地时区解析（new Date('YYYY-MM-DD') 会按 UTC，边界日错 8 小时）
+      const dm = String(r.date || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      const d = dm
+        ? new Date(Number(dm[1]), Number(dm[2]) - 1, Number(dm[3]))
+        : new Date(String(r.created_at || ""));
+      if (!isNaN(d.getTime()) && d >= weekAgo) weekDecisions.push(String(r.title));
+      if (String(r.status) === "accepted" && !isNaN(d.getTime()) && d < monthAgo) {
         const days = Math.floor((Date.now() - d.getTime()) / 86400000);
         reviewDue.push({ title: String(r.title), days, date: String(r.date || "") });
       }
