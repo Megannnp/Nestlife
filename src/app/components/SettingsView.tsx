@@ -165,7 +165,13 @@ export function SettingsView({ workspace, updateSchedule, resetAll }: SettingsVi
       body: JSON.stringify({ action: "restore", file: name }),
     });
     const d = await res.json();
-    setBackupNotice(d.ok ? `✅ 已恢复 ${name}，刷新页面生效` : `⚠️ ${d.error || "恢复失败"}`);
+    if (d.ok) {
+      setBackupNotice(`✅ 已恢复 ${name}，正在刷新…`);
+      // 自动刷新：恢复后前端旧数据会覆盖新数据，必须重载
+      setTimeout(() => window.location.reload(), 800);
+    } else {
+      setBackupNotice(`⚠️ ${d.error || "恢复失败"}`);
+    }
     setTimeout(() => setBackupNotice(""), 4000);
   };
 

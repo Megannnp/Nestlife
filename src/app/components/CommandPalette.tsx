@@ -57,23 +57,21 @@ export function CommandPalette({ open, onClose, workspace, setActiveView, onQuic
 
     const items: { type: "nav" | "project" | "task" | "goal" | "habit"; key: string; label: string; sub: string; icon: string; action: () => void }[] = [];
 
-    // 导航
-    if (!q || "今天 事业 成长 ai 助手 知识中心 决策室 公众号 设置".includes(q)) {
-      NAV_ITEMS.forEach((n) => {
-        if (!q || n.label.toLowerCase().includes(q))
-          items.push({
-            type: "nav",
-            key: `nav-${n.key}`,
-            label: n.label,
-            sub: "页面",
-            icon: n.icon,
-            action: () => {
-              setActiveView(n.key);
-              onClose();
-            },
-          });
-      });
-    }
+    // 导航（q 为空显示全部，否则按 label 匹配）
+    NAV_ITEMS.forEach((n) => {
+      if (!q || n.label.toLowerCase().includes(q))
+        items.push({
+          type: "nav",
+          key: `nav-${n.key}`,
+          label: n.label,
+          sub: "页面",
+          icon: n.icon,
+          action: () => {
+            setActiveView(n.key);
+            onClose();
+          },
+        });
+    });
 
     // 项目
     workspace.projects.forEach((p) => {
