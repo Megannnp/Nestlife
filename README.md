@@ -69,6 +69,7 @@ NESTLIFE_AUTH=1 NESTLIFE_ADMIN_PASSWORD=你的密码 npm run start -- -p 3100
 - [USAGE.md](./USAGE.md) — 使用说明书
 - [DEPLOY.md](./DEPLOY.md) — 部署与排错
 - [CHANGELOG.md](./CHANGELOG.md) — 版本记录
+- [DELIVERY.md](./DELIVERY.md) — 买家交付清单
 - [ARCHITECTURE.md](./ARCHITECTURE.md) — 开发者架构
 
 ## 授权
