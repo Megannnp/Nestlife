@@ -10,10 +10,11 @@
  *
  * 保留策略：iCloud 端只保留最近 14 份备份（与本地一致）
  */
+import os from "node:os";
 import fs from "fs";
 import path from "path";
 
-const HOME = process.env.HOME || "";
+const HOME = os.homedir();
 const DATA_DIR = process.env.NESTLIFE_DATA || path.join(HOME, ".nestlife", "data");
 const DB_FILE = path.join(DATA_DIR, "nestlife.db");
 const KNOWLEDGE_DIR = path.join(DATA_DIR, "knowledge");

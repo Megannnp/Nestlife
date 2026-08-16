@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import os from "os";
 import { readAiConfig, saveAiConfig, clearAiConfig } from "../../../lib/ai-config.ts";
 import { OPENCLAW_URL } from "../../../lib/config.ts";
 
@@ -14,7 +15,7 @@ import { OPENCLAW_URL } from "../../../lib/config.ts";
 /** 检测本机 OpenClaw：读取 ~/.openclaw/openclaw.json（存在且有 gateway 配置） */
 function detectOpenClaw(): { detected: boolean; url: string; token: string; port: number } {
   try {
-    const p = path.join(process.env.HOME || "", ".openclaw", "openclaw.json");
+    const p = path.join(os.homedir(), ".openclaw", "openclaw.json");
     if (fs.existsSync(p)) {
       const cfg = JSON.parse(fs.readFileSync(p, "utf-8"));
       const port = Number(cfg.gateway?.port ?? 18789);

@@ -8,12 +8,13 @@
  * 输出写入 DB 表 project_activity（供事业页展示）
  * 由每日 cron 调用（与 daily-summary 同批）
  */
+import os from "node:os";
 import { DatabaseSync } from "node:sqlite";
 import fs from "fs";
 import path from "path";
 import { execSync } from "child_process";
 
-const HOME = process.env.HOME || "";
+const HOME = os.homedir();
 const DATA_DIR = process.env.NESTLIFE_DATA || path.join(HOME, ".nestlife", "data");
 const DB_FILE = path.join(DATA_DIR, "nestlife.db");
 
@@ -37,7 +38,7 @@ const PROJECT_DIRS = (process.env.NESTLIFE_PROJECT_DIRS || "")
       label,
       dirs: (dirsPart || "")
         .split(",")
-        .map((d) => d.trim().replace(/^~(?=\/)/, process.env.HOME || ""))
+        .map((d) => d.trim().replace(/^~(?=\/)/, os.homedir()))
         .filter(Boolean),
     };
   });

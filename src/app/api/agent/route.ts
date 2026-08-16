@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import os from "os";
 import { OPENCLAW_URL, OPENCLAW_TOKEN } from "../../../lib/config.ts";
 import { readAiConfig } from "../../../lib/ai-config.ts";
 import { BUILTIN_TOOLS, BUILTIN_SYSTEM, execTool } from "../../../lib/agent-exec.ts";
@@ -19,7 +20,7 @@ function readGatewayConfig(): { url: string; token: string; provider: string } |
   if (OPENCLAW_URL) return { url: OPENCLAW_URL, token: OPENCLAW_TOKEN, provider: "env" };
   // 3. openclaw.json（本机已安装 OpenClaw）
   try {
-    const p = path.join(process.env.HOME || "", ".openclaw", "openclaw.json");
+    const p = path.join(os.homedir(), ".openclaw", "openclaw.json");
     if (!fs.existsSync(p)) return null;
     const raw = fs.readFileSync(p, "utf-8");
     const cfg = JSON.parse(raw);

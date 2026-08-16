@@ -6,11 +6,12 @@
  * 顺手做决策闭环：列出超 30 天未复查的已采纳决策
  * 生成后插入周一任务「📊 查看本周周报」提醒老板（不重复插入）
  */
+import os from "node:os";
 import { DatabaseSync } from "node:sqlite";
 import fs from "fs";
 import path from "path";
 
-const HOME = process.env.HOME || "";
+const HOME = os.homedir();
 const DATA_DIR = process.env.NESTLIFE_DATA || path.join(HOME, ".nestlife", "data");
 const DB_FILE = path.join(DATA_DIR, "nestlife.db");
 const KNOWLEDGE_DIR = path.join(DATA_DIR, "knowledge");

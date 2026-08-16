@@ -2,10 +2,12 @@
  * 一次性迁移：workspace 快照 → 独立表（goals/habits/projects/milestones）
  * 运行：node scripts/migrate-tables.mjs
  */
+import os from "node:os";
+import fs from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import path from "path";
 
-const HOME = process.env.HOME || "";
+const HOME = os.homedir();
 const DB_FILE = path.join(process.env.NESTLIFE_DATA || path.join(HOME, ".nestlife", "data"), "nestlife.db");
 
 fs.mkdirSync(path.dirname(DB_FILE), { recursive: true });

@@ -12,8 +12,9 @@
  */
 
 import path from "path";
+import os from "os";
 
-const HOME = process.env.HOME || "";
+const HOME = os.homedir();
 
 /** 数据根目录（SQLite + 知识库 + 备份） */
 export const DATA_DIR = process.env.NESTLIFE_DATA || path.join(HOME, ".nestlife", "data");

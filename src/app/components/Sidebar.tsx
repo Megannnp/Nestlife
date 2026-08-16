@@ -259,7 +259,7 @@ export function Sidebar({ activeView, setActiveView, workspace, todayTasksDone, 
       {/* 快捷键提示 */}
       <div className="mt-auto text-[10px] text-[#A1A1AA] leading-[1.8] border-t border-[#F1F1F3] pt-3">
         <div className="flex flex-wrap gap-x-3 gap-y-1">
-          <span><kbd className="font-mono bg-[#F1F1F3] px-1 rounded text-[9px]">⌘K</kbd> 面板</span>
+          <span><kbd className="font-mono bg-[#F1F1F3] px-1 rounded text-[9px]">{typeof navigator !== "undefined" && /Mac/i.test(navigator.platform) ? "⌘K" : "Ctrl+K"}</kbd> 面板</span>
           <span><kbd className="font-mono bg-[#F1F1F3] px-1 rounded text-[9px]">N</kbd> 加任务</span>
           <span><kbd className="font-mono bg-[#F1F1F3] px-1 rounded text-[9px]">空格</kbd> 勾选</span>
           <span><kbd className="font-mono bg-[#F1F1F3] px-1 rounded text-[9px]">1-7</kbd> 切页</span>

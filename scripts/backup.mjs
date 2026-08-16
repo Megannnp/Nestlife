@@ -2,10 +2,11 @@
  * 数据备份 — 复制 nestlife.db 到 data/backups/（带日期）
  * 保留最近 14 份
  */
+import os from "node:os";
 import fs from "fs";
 import path from "path";
 
-const DATA_DIR = process.env.NESTLIFE_DATA || path.join(process.env.HOME || "", ".nestlife", "data");
+const DATA_DIR = process.env.NESTLIFE_DATA || path.join(os.homedir(), ".nestlife", "data");
 const DB_FILE = path.join(DATA_DIR, "nestlife.db");
 const BACKUP_DIR = path.join(DATA_DIR, "backups");
 

@@ -1,3 +1,4 @@
+import os from "node:os";
 import { DatabaseSync } from "node:sqlite";
 import fs from "fs";
 import path from "path";
@@ -9,7 +10,7 @@ import path from "path";
  * 3. 例行任务（时刻表高价值时段）
  */
 
-const DATA_DIR = process.env.NESTLIFE_DATA || path.join(process.env.HOME || "", ".nestlife", "data");
+const DATA_DIR = process.env.NESTLIFE_DATA || path.join(os.homedir(), ".nestlife", "data");
 const DB_FILE = path.join(DATA_DIR, "nestlife.db");
 
 function getDb() {

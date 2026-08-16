@@ -11,8 +11,20 @@
 |---|---|
 | 系统 | Linux / macOS（Windows 建议用 Docker） |
 | 内存 | 512MB 以上（个人工具，很省） |
-| 方式 A（Docker） | 已安装 Docker 和 Docker Compose |
+| 方式 A（Docker） | 已安装 Docker 和 Docker Compose（macOS/Windows 用 Docker Desktop） |
 | 方式 B/C（直接运行） | **Node.js ≥ 22.5**（务必 ≥22.5，否则启动即崩） |
+
+**不同系统的使用区别**（不影响功能，仅部署/习惯差异）：
+
+| 事项 | macOS | Windows | Linux |
+|---|---|---|---|
+| 推荐安装 | 直接运行（方式 B/C）或 Docker | **Docker Desktop**（最省心） | install.sh 或 Docker |
+| 数据默认位置 | `~/Library/.nestlife/data` | 同路径 `%USERPROFILE%\.nestlife\data`（直接运行）/ Docker 卷（见 docker-compose.yml） | `~/.nestlife/data` |
+| 数据备份同步 | `NESTLIFE_ICLOUD_DIR` 指向 iCloud 目录 | `NESTLIFE_ICLOUD_DIR` 指向 OneDrive 目录 | `NESTLIFE_ICLOUD_DIR` 指向任意网盘目录 |
+| 快捷键 | `⌘K` 命令面板 | `Ctrl+K` 命令面板 | `Ctrl+K` 命令面板 |
+| 定时任务 | launchd（脚本自带示例） | 任务计划程序（可跳过：Docker + 内置每日备份已够用） | cron / systemd timer |
+
+> 数据格式完全一致（SQLite 单文件 + 知识库目录），**换系统可直接复制数据目录迁移**。
 
 检查 Node 版本：
 ```bash
