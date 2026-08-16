@@ -102,7 +102,7 @@ test("parse-task: 两点半 → 2:30 + 标题干净", () => {
   assert.equal(r.title, "开会");
 });
 
-test("parse-task: 上午10点 → 10:00（不被"午"误判为中午）", () => {
+test("parse-task: 上午10点 → 10:00（不被午误判为中午）", () => {
   const r = parse("今天上午10点开会", "2026-08-03T10:00:00");
   assert.equal(r.startTime, "10:00");
 });
