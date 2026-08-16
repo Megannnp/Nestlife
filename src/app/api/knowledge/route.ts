@@ -178,6 +178,10 @@ export async function DELETE(req: Request) {
   const { searchParams } = new URL(req.url);
   const rel = (searchParams.get("path") || "").trim().replace(/^\/+|\/+$/g, "");
   if (!rel) return NextResponse.json({ error: "path required" }, { status: 400 });
+  // 拒绝路径穿越段（sub/.. 会被 resolve 到 KB_DIR 根，防止误删整个知识库）
+  if (rel.split("/").includes("..")) {
+    return NextResponse.json({ error: "not allowed" }, { status: 403 });
+  }
 
   const target = path.resolve(KB_DIR, rel);
   if (target !== KB_DIR && !target.startsWith(KB_DIR + path.sep)) {

@@ -109,6 +109,11 @@ test("路径穿越防护：知识上传 dir 参数拒绝越界", async () => {
   assert.equal(res.status, 400, "dir 越界应 400");
 });
 
+test("路径穿越防护：删除目录 sub/.. 拒绝（防删整个知识库）", async () => {
+  const res = await fetch(`${BASE}/api/knowledge?path=sub/..&force=1`, { method: "DELETE" });
+  assert.equal(res.status, 403, "sub/.. 应 403");
+});
+
 test("POST /api/ai-config 保存/脱敏/清除", async () => {
   const base = "http://localhost:3100/api/ai-config";
   // 保存

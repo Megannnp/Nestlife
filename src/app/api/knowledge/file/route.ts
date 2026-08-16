@@ -9,6 +9,8 @@ import { KB_DIR } from "../../../../lib/config.ts";
  */
 
 function safeResolve(rel: string): string | null {
+  // 拒绝路径穿越段：sub/.. 会被 resolve 到 KB_DIR 根，统一拦截
+  if (rel.split("/").includes("..")) return null;
   const abs = path.resolve(KB_DIR, rel);
   if (abs !== KB_DIR && !abs.startsWith(KB_DIR + path.sep)) return null;
   return abs;
