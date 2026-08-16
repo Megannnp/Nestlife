@@ -11,13 +11,13 @@ import { BUILTIN_TOOLS, BUILTIN_SYSTEM, execTool } from "../../../lib/agent-exec
  * 配置优先级：设置页（ai-config.json）→ 环境变量 NESTLIFE_OPENCLAW_URL → ~/.openclaw/openclaw.json（开发兼容）
  */
 
-function readGatewayConfig(): { url: string; token: string } | null {
+function readGatewayConfig(): { url: string; token: string; provider: string } | null {
   // 1. 设置页配置（用户最新设置，无需重启）
   const pageCfg = readAiConfig();
-  if (pageCfg) return { url: pageCfg.url, token: pageCfg.token };
+  if (pageCfg) return { url: pageCfg.url, token: pageCfg.token, provider: pageCfg.provider ?? "page" };
   // 2. 环境变量（部署者配置）
-  if (OPENCLAW_URL) return { url: OPENCLAW_URL, token: OPENCLAW_TOKEN };
-  // 3. openclaw.json（开发环境兼容）
+  if (OPENCLAW_URL) return { url: OPENCLAW_URL, token: OPENCLAW_TOKEN, provider: "env" };
+  // 3. openclaw.json（本机已安装 OpenClaw）
   try {
     const p = path.join(process.env.HOME || "", ".openclaw", "openclaw.json");
     if (!fs.existsSync(p)) return null;
@@ -25,10 +25,15 @@ function readGatewayConfig(): { url: string; token: string } | null {
     const cfg = JSON.parse(raw);
     const port = cfg.gateway?.port ?? 18789;
     const token = cfg.gateway?.auth?.token ?? cfg.gateway?.auth?.password ?? "";
-    return { url: `http://localhost:${port}/v1/chat/completions`, token };
+    return { url: `http://localhost:${port}/v1/chat/completions`, token, provider: "openclaw" };
   } catch {
     return null;
   }
+}
+
+/** 判断是否 OpenClaw 网关：配置来源是 openclaw，或 URL 指向默认端口 18789 */
+function isOpenClawGateway(gw: { url: string; provider: string }): boolean {
+  return gw.provider === "openclaw" || /18789/.test(gw.url);
 }
 
 /** GET：AI 是否已接入（前端据此提示/隐藏 AI 功能） */
@@ -58,6 +63,21 @@ async function runBuiltin(
     });
     if (!res.ok) {
       const text = await res.text();
+      // 部分模型/网关不支持 tools（function calling）——降级为纯对话，至少能聊天
+      if (i === 0 && /tools?/i.test(text)) {
+        const plain = await fetch(gw.url, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            ...(gw.token ? { authorization: `Bearer ${gw.token}` } : {}),
+          },
+          body: JSON.stringify({ model: "openclaw", messages: msgs, max_tokens: 4096, stream: false }),
+          signal: AbortSignal.timeout(180_000),
+        });
+        if (!plain.ok) throw new Error(`gateway ${plain.status}: ${(await plain.text()).slice(0, 300)}`);
+        const pdata = await plain.json();
+        return pdata?.choices?.[0]?.message?.content ?? "(无回复)";
+      }
       throw new Error(`gateway ${res.status}: ${text.slice(0, 300)}`);
     }
     const data = await res.json();
@@ -97,56 +117,59 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "messages required" }, { status: 400 });
     }
 
-    // OpenClaw（默认端口 18789）→ 透传（OpenClaw 自带完整执行能力）
-    // 其他网关（DeepSeek / Ollama 等）→ 内置执行器（function calling 白名单工具）
-    const isOpenClaw = /18789/.test(gw.url);
-    if (!isOpenClaw) {
+    // OpenClaw → 透传（完整执行能力）；其他网关（DeepSeek / Ollama 等）→ 内置执行器
+    if (isOpenClawGateway(gw)) {
+      const res = await fetch(gw.url, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          ...(gw.token ? { authorization: `Bearer ${gw.token}` } : {}),
+        },
+        body: JSON.stringify({
+          model: "openclaw",
+          messages,
+          max_tokens: 4096,
+          stream: !!stream,
+        }),
+        // 长任务（AI 可能读文件/执行）给足时间
+        signal: AbortSignal.timeout(180_000),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        return NextResponse.json({ error: `gateway ${res.status}: ${text.slice(0, 300)}` }, { status: 502 });
+      }
+
+      // 流式：直接透传 gateway 的 SSE 流
+      if (stream) {
+        return new Response(res.body, {
+          headers: {
+            "content-type": "text/event-stream; charset=utf-8",
+            "cache-control": "no-cache, no-transform",
+            connection: "keep-alive",
+          },
+        });
+      }
+
+      const data = await res.json();
+      const content = data?.choices?.[0]?.message?.content ?? "";
+      return NextResponse.json({ content });
+    }
+
+    // 内置执行器（非 OpenClaw）
+    try {
       const content = await runBuiltin(gw, messages);
       if (stream) {
-        // 用 SSE 包装，前端流式解析无需改动
         const sse = `data: ${JSON.stringify({ choices: [{ delta: { content } }] })}\n\ndata: [DONE]\n\n`;
         return new Response(sse, {
           headers: { "content-type": "text/event-stream; charset=utf-8", "cache-control": "no-cache" },
         });
       }
       return NextResponse.json({ content });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      return NextResponse.json({ error: msg }, { status: 502 });
     }
-
-    const res = await fetch(gw.url, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        ...(gw.token ? { authorization: `Bearer ${gw.token}` } : {}),
-      },
-      body: JSON.stringify({
-        model: "openclaw",
-        messages,
-        max_tokens: 4096,
-        stream: !!stream,
-      }),
-      // 长任务（AI 可能读文件/执行）给足时间
-      signal: AbortSignal.timeout(180_000),
-    });
-
-    if (!res.ok) {
-      const text = await res.text();
-      return NextResponse.json({ error: `gateway ${res.status}: ${text.slice(0, 300)}` }, { status: 502 });
-    }
-
-    // 流式：直接透传 gateway 的 SSE 流
-    if (stream) {
-      return new Response(res.body, {
-        headers: {
-          "content-type": "text/event-stream; charset=utf-8",
-          "cache-control": "no-cache, no-transform",
-          connection: "keep-alive",
-        },
-      });
-    }
-
-    const data = await res.json();
-    const content = data?.choices?.[0]?.message?.content ?? "";
-    return NextResponse.json({ content });
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     return NextResponse.json({ error: msg }, { status: 500 });

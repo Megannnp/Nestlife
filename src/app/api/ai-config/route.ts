@@ -62,7 +62,7 @@ export async function POST(req: Request) {
           { status: 404 }
         );
       }
-      saveAiConfig(oc.url, oc.token);
+      saveAiConfig(oc.url, oc.token, "openclaw");
       return NextResponse.json({ ok: true, saved: true, provider: "openclaw", url: oc.url });
     }
 
