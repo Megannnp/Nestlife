@@ -293,12 +293,16 @@ export default function Home() {
     update((w) => ({ ...w, schedule: items }));
   }, [update]);
 
-  // 全局快捷键：空格勾选首个未完成任务 / n 聚焦输入 / 1-7 切页
+  // 菜单按用户配置（隐藏项不在导航显示）——先定义，供快捷键/命令面板/渲染共用
+  const navItems = workspace ? mergeNavConfig(workspace.navConfig) : [];
+
+  // 全局快捷键：空格勾选首个未完成任务 / n 聚焦输入 / 1-9 切页（跟随菜单配置）
   const todayTasksForShortcut = (workspace?.tasks ?? []).filter((t) => t.date === todayStr() && t.status !== "done");
   useGlobalShortcuts({
     activeView,
     setActiveView: (v) => setActiveView(v),
     enabled: !commandOpen,
+    navItems,
     onToggleFirstTask: () => {
       const first = todayTasksForShortcut[0];
       if (first) toggleTask(first.id);
@@ -323,8 +327,6 @@ export default function Home() {
   const today = todayStr();
   const todayTasks = workspace.tasks.filter((t) => t.date === today);
   const todayDone = todayTasks.filter((t) => t.status === "done").length;
-  // 菜单按用户配置（隐藏项不在导航显示）
-  const navItems = mergeNavConfig(workspace.navConfig);
 
   return (
     <ToastProvider>

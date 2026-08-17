@@ -15,6 +15,8 @@ export function useGlobalShortcuts(opts: {
   onToggleFirstTask?: () => void;
   focusTaskInput?: () => void;
   enabled?: boolean;
+  /** 用户菜单配置（跟随改名/隐藏/排序），缺省用默认全 9 视图 */
+  navItems?: { key: string; visible?: boolean }[];
 }) {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -36,9 +38,11 @@ export function useGlobalShortcuts(opts: {
         e.preventDefault();
         opts.onToggleFirstTask?.();
       }
-      // 1-7 → 切页
-      else if (/^[1-7]$/.test(e.key)) {
-        const views: LifeView[] = ["today", "career", "growth", "agent", "knowledge", "decisions", "settings"];
+      // 1-9 → 切页（跟随用户菜单顺序；隐藏项自动跳过）
+      else if (/^[1-9]$/.test(e.key)) {
+        const DEFAULT_VIEWS: LifeView[] = ["today", "reviews", "career", "growth", "agent", "knowledge", "wechat", "decisions", "settings"];
+        const nav = (opts.navItems?.filter((n) => n.visible !== false) ?? []).map((n) => n.key) as LifeView[];
+        const views = nav.length ? nav : DEFAULT_VIEWS;
         const idx = parseInt(e.key, 10) - 1;
         if (views[idx]) {
           opts.setActiveView(views[idx]);

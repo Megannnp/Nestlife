@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { LifeView, Workspace } from "../../lib/types.ts";
+import { mergeNavConfig } from "../../lib/nav-config.ts";
 
 interface CommandPaletteProps {
   open: boolean;
@@ -11,18 +12,6 @@ interface CommandPaletteProps {
   /** 快速添加任务回调（回车即加） */
   onQuickAddTask: (title: string) => void;
 }
-
-/** 导航项（静态，模块级常量，避免每次渲染重建） */
-const NAV_ITEMS: { key: LifeView; label: string; icon: string }[] = [
-  { key: "today", label: "今天", icon: "📋" },
-  { key: "career", label: "事业", icon: "🏗️" },
-  { key: "growth", label: "成长", icon: "🌱" },
-  { key: "agent", label: "AI 助手", icon: "🧭" },
-  { key: "knowledge", label: "知识中心", icon: "📚" },
-  { key: "decisions", label: "决策室", icon: "🧭" },
-  { key: "wechat", label: "公众号", icon: "📣" },
-  { key: "settings", label: "设置", icon: "⚙️" },
-];
 
 /** ⌘K 命令面板：搜索任务/项目/跳转/快速添加 */
 export function CommandPalette({ open, onClose, workspace, setActiveView, onQuickAddTask }: CommandPaletteProps) {
@@ -57,21 +46,23 @@ export function CommandPalette({ open, onClose, workspace, setActiveView, onQuic
 
     const items: { type: "nav" | "project" | "task" | "goal" | "habit"; key: string; label: string; sub: string; icon: string; action: () => void }[] = [];
 
-    // 导航（q 为空显示全部，否则按 label 匹配）
-    NAV_ITEMS.forEach((n) => {
-      if (!q || n.label.toLowerCase().includes(q))
-        items.push({
-          type: "nav",
-          key: `nav-${n.key}`,
-          label: n.label,
-          sub: "页面",
-          icon: n.icon,
-          action: () => {
-            setActiveView(n.key);
-            onClose();
-          },
-        });
-    });
+    // 导航（跟随用户菜单配置：改名/隐藏/排序生效；空 q 显示全部可见项）
+    mergeNavConfig(workspace.navConfig)
+      .filter((n) => n.visible)
+      .forEach((n) => {
+        if (!q || n.label.toLowerCase().includes(q))
+          items.push({
+            type: "nav",
+            key: `nav-${n.key}`,
+            label: n.label,
+            sub: "页面",
+            icon: n.icon,
+            action: () => {
+              setActiveView(n.key as LifeView);
+              onClose();
+            },
+          });
+      });
 
     // 项目
     workspace.projects.forEach((p) => {
