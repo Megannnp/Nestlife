@@ -20,6 +20,8 @@ export async function middleware(req: NextRequest) {
   if (process.env.NESTLIFE_AUTH !== "1") return noStore(NextResponse.next());
 
   const { pathname } = req.nextUrl;
+  // 真实来源主机：用请求 Host header（dev server -H 0.0.0.0 时 nextUrl.hostname 会错返回监听地址）
+  const host = (req.headers.get("host") || "").split(":")[0];
 
   // 放行：认证接口、登录页、静态资源
   if (pathname === "/api/auth/login" || pathname === "/api/auth/logout") return noStore(NextResponse.next());
@@ -27,6 +29,10 @@ export async function middleware(req: NextRequest) {
   if (pathname.startsWith("/_next/") || pathname === "/icon.svg" || pathname === "/favicon.ico") {
     return NextResponse.next();
   }
+
+  // 本机访问（localhost）免登录：用户本机浏览器 + OpenClaw(Mira) 本机 API 调用不受认证影响；
+  // 局域网/公网来源（手机等）必须登录后才能访问个人数据。
+  if (host === "localhost") return noStore(NextResponse.next());
 
   const expected = process.env.NESTLIFE_ADMIN_PASSWORD || "";
   const token = req.cookies.get(SESSION_COOKIE_NAME)?.value || "";

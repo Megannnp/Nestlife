@@ -9,7 +9,8 @@ import { spawn } from "node:child_process";
 import path from "node:path";
 
 const PORT = 3299;
-const BASE = `http://localhost:${PORT}`;
+const BASE = `http://127.0.0.1:${PORT}`; // 用 127.0.0.1 而非 localhost：localhost 已配置为本机免登录
+const LOCAL = `http://localhost:${PORT}`;
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
 const DATA = `/tmp/nestlife-auth-test-${Date.now()}`;
 
@@ -125,4 +126,9 @@ test("敏感 API 响应不缓存（no-store）", async () => {
     (res.headers.get("cache-control") || "").includes("no-store"),
     "受保护 API 应返回 Cache-Control: no-store"
   );
+});
+
+test("本机 localhost 免登录（OpenClaw/Mira + 用户本机浏览器）", async () => {
+  const res = await fetch(`${LOCAL}/api/workspace`);
+  assert.equal(res.status, 200, "localhost 来源应免登录直接访问 API");
 });
