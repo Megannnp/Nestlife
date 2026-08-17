@@ -56,3 +56,6 @@ jobs:
 
       - name: Audit
         run: npm audit --audit-level=high
+
+      - name: Docker build (image compiles)
+        run: docker build -t nestlife:ci .

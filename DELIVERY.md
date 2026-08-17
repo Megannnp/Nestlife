@@ -4,8 +4,8 @@
 
 ## 一、交付内容（✓ 逐项确认）
 
-- [ ] 安装包：`nestlife-v1.0.tar.gz`（或 Docker 镜像）
-- [ ] 文档：INSTALL.md（安装）· USAGE.md（使用）· DEPLOY.md（排错）· CHANGELOG.md · LICENSE
+- [ ] 安装包：`nestlife-v1.0.tar.gz`（或 Docker 镜像）——由 `bash deploy/pack.sh` 生成
+- [ ] 文档：INSTALL.md（安装）· CONFIG.md（配置）· USAGE.md（使用）· DEPLOY.md（排错）· CHANGELOG.md · LICENSE
 - [ ] 远程部署支持 1 次（含基础配置：认证/端口/数据目录）
 
 ## 二、部署验收（三选一，完成后勾选）
