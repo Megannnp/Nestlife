@@ -20,8 +20,9 @@ const TEXT_EXT = new Set([
   ".md", ".markdown", ".txt", ".js", ".jsx", ".ts", ".tsx", ".json", ".css",
   ".html", ".py", ".yml", ".yaml", ".csv", ".xml", ".sql", ".sh",
 ]);
-const IMAGE_EXT = new Set([".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg"]);
-const MAX_READ_BYTES = 10 * 1024 * 1024; // 单次读取上限 10MB（防大文件拖垮内存）
+const IMAGE_EXT = new Set([".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".heic", ".heif"]);
+const MAX_READ_BYTES = 10 * 1024 * 1024; // 文本单次读取上限 10MB
+const MAX_IMAGE_READ_BYTES = 50 * 1024 * 1024; // 图片单次读取上限 50MB（与上传上限一致）
 
 /** GET：读取文件内容 */
 export async function GET(req: Request) {
@@ -51,11 +52,12 @@ export async function GET(req: Request) {
 
   if (IMAGE_EXT.has(ext)) {
     const stat = fs.statSync(abs);
-    if (stat.size > MAX_READ_BYTES) {
-      return NextResponse.json({ error: "图片过大（>10MB）" }, { status: 413 });
+    if (stat.size > MAX_IMAGE_READ_BYTES) {
+      return NextResponse.json({ error: "图片过大（>50MB）" }, { status: 413 });
     }
     const buf = fs.readFileSync(abs);
-    const mime = ext === ".svg" ? "image/svg+xml" : ext === ".jpg" ? "image/jpeg" : `image/${ext.slice(1)}`;
+    const mime =
+      ext === ".svg" ? "image/svg+xml" : ext === ".jpg" ? "image/jpeg" : ext === ".heic" ? "image/heic" : ext === ".heif" ? "image/heif" : `image/${ext.slice(1)}`;
     return NextResponse.json({ name: path.basename(abs), ext, size: buf.length, image: `data:${mime};base64,${buf.toString("base64")}` });
   }
 

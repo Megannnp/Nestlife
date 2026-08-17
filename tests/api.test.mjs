@@ -76,6 +76,21 @@ test("GET /api/knowledge/search 全文检索", async () => {
   assert.ok(Array.isArray(d.results), "results 应为数组");
 });
 
+test("知识中心：上传 HEIC 图片并能读取为图片数据", async () => {
+  // 回归：HEIC(iPhone 照片默认格式) 之前被识别为 unsupported，打开不显示
+  const form = new FormData();
+  form.append("file", new Blob(["fake-heic-content"], { type: "application/octet-stream" }), "pic-test.heic");
+  const up = await fetch(`${BASE}/api/knowledge`, { method: "POST", body: form });
+  assert.equal(up.status, 200, "HEIC 应上传成功");
+  const upd = await up.json();
+  assert.ok(upd.ok, "上传应返回 ok");
+  const read = await fetch(`${BASE}/api/knowledge/file?path=${encodeURIComponent("pic-test.heic")}`);
+  assert.equal(read.status, 200);
+  const rd = await read.json();
+  assert.ok(rd.image && rd.image.startsWith("data:image/heic;base64,"), "应返回 HEIC 图片数据");
+  await fetch(`${BASE}/api/knowledge/file?path=${encodeURIComponent("pic-test.heic")}`, { method: "DELETE" });
+});
+
 test("GET /api/projects/activity 项目活跃度", async () => {
   const res = await fetch(`${BASE}/api/projects/activity`);
   assert.equal(res.status, 200);

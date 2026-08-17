@@ -98,7 +98,7 @@ export function KnowledgeView() {
       setReading({ relPath, name: relPath.split("/").pop() ?? relPath });
       return;
     }
-    if ([".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg"].includes(ext)) {
+    if ([".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".heic", ".heif"].includes(ext)) {
       try {
         const res = await fetch(`/api/knowledge/file?path=${encodeURIComponent(relPath)}`);
         const d = await res.json();

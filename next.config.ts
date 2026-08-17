@@ -24,6 +24,10 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Route Handler 请求体限制：知识中心支持最大 50MB 上传（Next.js 默认 10MB 会导致大图/大文件上传被截断）
+  experimental: {
+    proxyClientMaxBodySize: "50mb",
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
