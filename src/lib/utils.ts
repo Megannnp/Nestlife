@@ -15,6 +15,17 @@ export function todayStr(): string {
   return `${y}-${m}-${day}`;
 }
 
+/** 日期字符串（YYYY-MM-DD）偏移 N 天：如 shiftDate("2026-08-17", -1) → "2026-08-16" */
+export function shiftDate(dateStr: string, delta: number): string {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const dt = new Date(y, m - 1, d);
+  dt.setDate(dt.getDate() + delta);
+  const yy = dt.getFullYear();
+  const mm = String(dt.getMonth() + 1).padStart(2, "0");
+  const dd = String(dt.getDate()).padStart(2, "0");
+  return `${yy}-${mm}-${dd}`;
+}
+
 /** 格式化日期为 8月3日 周一 样式 */
 export function formatDateCN(dateStr: string): string {
   if (!dateStr) return "";

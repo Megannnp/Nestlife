@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Workspace, Task, BranchId } from "../../lib/types.ts";
-import { formatMinutes, tasksOfDate, todayStr, priorityText } from "../../lib/utils.ts";
+import { formatMinutes, tasksOfDate, todayStr, priorityText, shiftDate } from "../../lib/utils.ts";
 import { useReminderNotifications } from "../../lib/use-reminder-notifications.ts";
 import { useToast } from "./Toast.tsx";
 import { parseTaskInput } from "../../lib/parse-task.ts";
@@ -31,8 +31,11 @@ export function DashboardView({ workspace, toggleTask, addTask, removeTask }: Da
   const today = todayStr();
   const now = new Date();
   const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-  const todayTasks = tasksOfDate(workspace.tasks, today);
-  const doneCount = todayTasks.filter((t) => t.status === "done").length;
+  // 今日看板支持翻看任意日期：selectedDate 决定任务列表/加任务的默认日期，提醒与时刻表始终跟随"现在"
+  const [selectedDate, setSelectedDate] = useState(today);
+  const viewTasks = tasksOfDate(workspace.tasks, selectedDate);
+  const doneCount = viewTasks.filter((t) => t.status === "done").length;
+  const isToday = selectedDate === today;
 
   const activeReminders = workspace.reminders.filter((r) => r.enabled && (r.date === today || r.date === "") && r.time >= timeStr);
 
@@ -45,7 +48,7 @@ export function DashboardView({ workspace, toggleTask, addTask, removeTask }: Da
       branchId: draft.branchId,
       goalId: draft.goalId || undefined,
       title: parsed.title,
-      date: parsed.date ?? today,
+      date: parsed.date ?? selectedDate,
       startTime: parsed.startTime,
       minutes: parsed.minutes ?? 60,
       priority: parsed.priority ?? "mid",
@@ -60,9 +63,35 @@ export function DashboardView({ workspace, toggleTask, addTask, removeTask }: Da
       {/* 今日任务 */}
       <section className="workspace-pane">
         <div className="flex items-center justify-between mb-3">
-          <div className="section-label">今日任务</div>
+          <div className="flex items-center gap-2">
+            <div className="section-label">{isToday ? "今日任务" : `${selectedDate.slice(5).replace("-", "/")} 任务`}</div>
+            <div className="flex items-center gap-1">
+              <button
+                className="min-h-[22px] px-1.5 rounded-[6px] border border-[#E4E4E7] text-[12px] text-[#71717A] hover:bg-[#F4F4F5]"
+                title="前一天"
+                onClick={() => setSelectedDate(shiftDate(selectedDate, -1))}
+              >
+                ◀
+              </button>
+              <button
+                className="min-h-[22px] px-1.5 rounded-[6px] border border-[#E4E4E7] text-[12px] text-[#71717A] hover:bg-[#F4F4F5]"
+                title="后一天"
+                onClick={() => setSelectedDate(shiftDate(selectedDate, 1))}
+              >
+                ▶
+              </button>
+              {!isToday && (
+                <button
+                  className="min-h-[22px] px-2 rounded-[6px] border border-[#E4E4E7] text-[12px] text-[#71717A] hover:bg-[#F4F4F5]"
+                  onClick={() => setSelectedDate(today)}
+                >
+                  回到今天
+                </button>
+              )}
+            </div>
+          </div>
           <div className="text-[12px] text-[#71717A]">
-            {doneCount} / {todayTasks.length}
+            {doneCount} / {viewTasks.length}
           </div>
         </div>
 
@@ -115,10 +144,10 @@ export function DashboardView({ workspace, toggleTask, addTask, removeTask }: Da
           <button className="primary-button !min-h-[32px]" onClick={submit}>添加</button>
         </div>
 
-        {todayTasks.length === 0 ? (
+        {viewTasks.length === 0 ? (
           <div className="py-8 text-center">
             <div className="text-[28px] mb-2">🌤️</div>
-            <p className="text-[13px] font-semibold text-[#18181B] mb-1">今天还没有任务</p>
+            <p className="text-[13px] font-semibold text-[#18181B] mb-1">{isToday ? "今天还没有任务" : "这一天还没有任务"}</p>
             <p className="text-[12px] text-[#A1A1AA] mb-3">试试用一句话添加：明天下午3点交材料</p>
             <button
               className="secondary-button !min-h-[30px] !text-[12px]"
@@ -129,7 +158,7 @@ export function DashboardView({ workspace, toggleTask, addTask, removeTask }: Da
           </div>
         ) : (
           <div className="flex flex-col">
-            {todayTasks.map((t) => {
+            {viewTasks.map((t) => {
               const branch = workspace.branches.find((b) => b.id === t.branchId);
               const goal = t.goalId ? workspace.goals.find((g) => g.id === t.goalId) : undefined;
               const done = t.status === "done";
