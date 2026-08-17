@@ -23,7 +23,7 @@
 
 **Your data stays 100% on your machine** (SQLite, zero external dependencies). Free for personal / non-commercial use.
 
-[简体中文 README](./README.md) · [中文安装说明](./INSTALL.md) · [中文使用说明](./USAGE.md)
+[简体中文 README](./README.md) · [中文安装说明](./INSTALL.md) · [中文使用说明](./USAGE.md) · [中文配置说明](./CONFIG.md)
 
 ---
 
