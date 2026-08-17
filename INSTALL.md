@@ -1,176 +1,207 @@
-# NestLife 安装说明书
+# NestLife 安装说明书（手把手版）
 
-> 面向首次安装的人。按下面的步骤一步步来，10 分钟内跑起来。
-> 遇到问题先看第 9 节「常见问题速查」，再查 [DEPLOY.md](./DEPLOY.md) 的详细排错。
-
-**开始之前，先确认你会什么**：
-- 这份文档需要**打开终端、敲命令**（Linux/macOS 用「终端」，Windows 用「命令提示符」）。
-- **完全不会命令行**？两个选择：① 请懂电脑的朋友帮你装（10 分钟）；② 用 Docker Desktop（图形界面，装好后点点就行）。
+> 跟着做就行，一步步来，大约 10 分钟跑起来。
+> 每步都写了「✅ 成功的样子」和「❌ 如果不对」，卡住就对照着看。
+> 完全不想碰命令行？① 请懂电脑的朋友帮你装；② 用 Docker Desktop（图形界面为主）。
 
 ---
 
-## 1. 系统要求
+## 0. 第一步：学会打开"终端"
 
-| 项 | 要求 |
+安装需要在"终端"里敲几条命令。不同系统打开方式不一样：
+
+| 系统 | 怎么打开终端 |
 |---|---|
-| 系统 | Linux / macOS（Windows 建议用 Docker） |
-| 内存 | 512MB 以上（个人工具，很省） |
-| 方式 A（Docker） | 已安装 Docker 和 Docker Compose（macOS/Windows 用 Docker Desktop） |
-| 方式 B/C（直接运行） | **Node.js ≥ 22.5**（务必 ≥22.5，否则启动即崩） |
+| **macOS** | 屏幕右上角放大镜 → 输入 `终端` → 回车；或「启动台 → 其他 → 终端」 |
+| **Windows** | 按键盘 `Win` 键 → 输入 `cmd` → 回车（打开的是黑窗口，就是它） |
+| **Linux** | 按 `Ctrl + Alt + T` 同时按下 |
 
-**不同系统的使用区别**（不影响功能，仅部署/习惯差异）：
+打开后你会看到类似 `用户名@电脑名 ~ %` 的提示符——这就是能敲命令的地方了。
+后面的命令**复制粘贴**进去，按**回车**执行即可（粘贴用 `Ctrl+V`，macOS 用 `Cmd+V`）。
 
-| 事项 | macOS | Windows | Linux |
-|---|---|---|---|
-| 推荐安装 | 直接运行（方式 B/C）或 Docker | **Docker Desktop**（最省心） | install.sh 或 Docker |
-| 数据默认位置 | `~/Library/.nestlife/data` | 同路径 `%USERPROFILE%\.nestlife\data`（直接运行）/ Docker 卷（见 docker-compose.yml） | `~/.nestlife/data` |
-| 数据备份同步 | `NESTLIFE_ICLOUD_DIR` 指向 iCloud 目录 | `NESTLIFE_ICLOUD_DIR` 指向 OneDrive 目录 | `NESTLIFE_ICLOUD_DIR` 指向任意网盘目录 |
-| 快捷键 | `⌘K` 命令面板 | `Ctrl+K` 命令面板 | `Ctrl+K` 命令面板 |
-| 定时任务 | launchd（脚本自带示例） | 任务计划程序（可跳过：Docker + 内置每日备份已够用） | cron / systemd timer |
+> ✅ 出现命令提示符（`~ %` 或 `C:\>`）就是成功了。
+> ❌ 打不开？Windows 试试开始菜单搜"PowerShell"；macOS 试试启动台里找。
 
-> 数据格式完全一致（SQLite 单文件 + 知识库目录），**换系统可直接复制数据目录迁移**。
+---
 
-检查 Node 版本：
+## 1. 选一条路：Docker（省事）还是直接运行（灵活）
+
+| 选择 | 适合谁 | 要装什么 |
+|---|---|---|
+| **A. Docker**（推荐） | 想省事、Windows 用户 | Docker Desktop（图形界面装） |
+| **B. 直接运行** | macOS / Linux 用户、爱折腾 | Node.js ≥ 22.5 |
+
+### 装 A：Docker Desktop
+
+1. 打开官网 `docker.com/products/docker-desktop`，下载你系统的安装包
+2. 双击安装，装完打开 Docker Desktop（首次可能提示登录/授权，允许即可）
+3. 等右上角图标变绿（或鲸鱼图标不再转圈）——说明 Docker 好了
+
+> ✅ Docker Desktop 图标正常显示、点开能看到 "running"。
+> ❌ 装不上？看安装包提示；实在不行改选 **B. 直接运行**。
+
+### 装 B：Node.js
+
+1. 打开官网 `nodejs.org`，下载 **LTS** 版本（左侧绿色按钮）
+2. 双击安装，一路"下一步"装完
+3. 回到终端，敲下面命令确认：
+
 ```bash
-node -v    # 必须 v22.5.0 或更高
+node -v
 ```
 
+> ✅ 显示 `v22.5.0` 或更高（如 `v24.x.x`）就对了。
+> ❌ 显示 `v22.5.0` 以下，或提示"找不到命令"？重新打开官网下载 LTS 版，重装一遍。
+
 ---
 
-## 2. 安装前准备
+## 2. 拿到 NestLife 并解压
 
-解压交付包，进入目录：
+你的安装包叫 `nestlife-v1.0.tar.gz`（或你收到的交付包），把它放到一个好找的位置（比如「下载」文件夹）。
+
+在终端里，先进到安装包所在的文件夹（把下面命令里的 `下载` 换成你实际放的文件夹名）：
+
+```bash
+cd ~/下载
+```
+
+> ✅ 回车后没有报错就行（还是显示 `~` 开头）。
+> ❌ 提示 `No such file`？文件夹名不对，改成 `cd Downloads`（英文）或你实际的名字。
+
+解压：
+
 ```bash
 tar xzf nestlife-v1.0.tar.gz
+```
+
+> ✅ 没报错，且执行 `ls` 能看到 `nestlife` 文件夹。
+> ❌ 提示 `tar: Error\..`？确认文件名拼写无误；Windows 可以用鼠标右键 → 解压。
+
+进入目录：
+
+```bash
 cd nestlife
 ```
 
-生成配置文件（**记得修改里面的密码**）：
+> ✅ 提示符前面出现 `nestlife`。
+
+---
+
+## 3. 设置登录密码（重要）
+
+复制配置文件模板：
+
 ```bash
 cp .env.example .env
 ```
 
+> ✅ 没报错。 `ls -a` 能看到 `.env`。
+
+现在**打开 `.env` 文件改密码**（用记事本 / 文本编辑打开这个文件，找到下面两行，把 `换成你自己的强密码` 改掉，保存）：
+
+```
+NESTLIFE_AUTH=1
+NESTLIFE_ADMIN_PASSWORD=换成你自己的强密码
+```
+
+> 这个密码就是以后**手机/其他设备访问时要登录的密码**，务必记住。
+> 本机访问（localhost）不需要输密码。忘记密码就回来改这行再重启。
+
 ---
 
-## 3. 方式一：Docker 安装（推荐，最省事）
+## 4. 启动 NestLife
+
+### 方式一：Docker（推荐，图形界面 Docker Desktop 装好的选这个）
 
 ```bash
 docker compose up -d
 ```
 
-- 首次会自动构建镜像并启动，等待出现 `nestlife` 容器
-- 查看是否启动成功：
-  ```bash
-  docker compose ps          # STATUS 应为 Up
-  docker compose logs -f     # 看日志，出现 "Ready" 即成功
-  ```
+> ⏳ 第一次会自动下载构建，等 1-3 分钟（耐心等，别关终端）。
+> ✅ 完成后执行 `docker compose ps`，STATUS 显示 `Up`。
+> ❌ 报 `command not found: docker`？回到第 1 节重新装 Docker Desktop 并打开它。
+> ❌ 报端口占用？见第 8 节「端口被占用」。
 
-**完成！** 浏览器打开 `http://localhost:3100` 进入第 6 节。
-
----
-
-## 4. 方式二：Linux 一键安装
+### 方式二：Linux 一键安装
 
 ```bash
 sudo bash install.sh /opt/nestlife
 ```
 
-脚本会自动：检查 Node → 拷贝源码 → 安装依赖 → 构建 → 创建数据目录 → 生成 .env → 注册 systemd 服务并启动。
+> ⏳ 脚本自动做所有事（检查、拷贝、装依赖、构建、启动），等几分钟。
+> ✅ 完成后 `systemctl status nestlife` 显示 `active (running)`。
+> ❌ 中途报错？把报错复制给部署工程师，或看 [DEPLOY.md](./DEPLOY.md)。
 
-完成后：
-```bash
-systemctl status nestlife    # 应显示 active (running)
-```
-
-**完成！** 浏览器打开 `http://localhost:3100`。
-
-> 手动管理：`sudo systemctl restart nestlife` 重启；`journalctl -u nestlife -f` 看日志。
-
----
-
-## 5. 方式三：手动运行（macOS / 任何系统）
+### 方式三：手动运行（macOS / 任何系统）
 
 ```bash
-# 1. 安装依赖（Node ≥ 22.5）
+# 1. 安装依赖（第一次要等一两分钟）
 npm ci
 
-# 2. 构建
+# 2. 构建（再等一两分钟）
 npm run build
 
-# 3. 启动（前台运行，Ctrl+C 停止）
-NESTLIFE_AUTH=1 \
-NESTLIFE_ADMIN_PASSWORD=你的密码 \
+# 3. 启动
 npm run start -- -p 3100
 ```
 
-常驻后台（推荐 pm2 或 nohup）：
+> ✅ 看到 `Ready` 或 `Local: http://localhost:3100` 就成功了。
+> ❌ `node:sqlite` 相关报错 = Node 版本不够，回第 1 节升级。
+> ⚠️ 这个窗口别关（关了服务就停）。想关窗口也能一直跑？用下面命令：
+
 ```bash
 nohup npm run start -- -p 3100 > nestlife.log 2>&1 &
 ```
 
-**完成！** 浏览器打开 `http://localhost:3100`。
+---
+
+## 5. 打开浏览器，开始使用
+
+1. 打开浏览器（Chrome / Edge / Safari 都行）
+2. 地址栏输入 `http://localhost:3100`，回车
+
+> ✅ 看到"NestLife / 筑巢人生"就成功了！
+> ❌ 打不开？回到第 4 节确认服务启动成功（三种方式的 ✅ 标志）；还不行看第 8 节。
+
+首次打开会自动初始化（默认菜单 / 时刻表 / 习惯）——**什么都不用配，直接开用**。
+日常用法：看 [USAGE.md](./USAGE.md)（大白话）。
 
 ---
 
-## 6. 首次启动（三种方式通用）
+## 6. 手机 / 其他设备访问（可选）
 
-1. 浏览器打开 `http://localhost:3100`
-2. 若你启用了认证（`NESTLIFE_AUTH=1`）：首次访问会跳到登录页，输入 `.env` 里设置的 `NESTLIFE_ADMIN_PASSWORD`
-3. 系统**自动初始化**：数据目录、默认菜单、默认时刻表、3 个默认习惯已自动创建——**什么都不用配，直接开用**
-4. 可选：进「设置」完善你的信息（人生态度、目标、项目）
-
-**推荐马上做**：
-- 进「设置 → AI 助手接入」，按你的需求选一档（详见 [DEPLOY.md](./DEPLOY.md) 第 4 节）：
-  - 在线问答 → 填 DeepSeek key（2 分钟）
-  - 离线问答 → 装 Ollama
-  - 对话即执行 → 装 OpenClaw 后点「⚡ 一键接入」
-- 进「设置 → 菜单设置」：隐藏不需要的模块、给菜单改名（可选）
+1. 让手机和这台电脑连**同一个 Wi-Fi**
+2. 电脑上查 IP：终端执行 `ipconfig getifaddr en0`（Windows 用 `ipconfig`），记下类似 `192.168.x.x` 的地址
+3. 手机浏览器打开 `http://那个IP:3100` → 输入第 3 节设的密码 → 进入
 
 ---
 
-## 7. 日常使用要点
+## 7. 备份与恢复（建议每周做一次）
 
-| 操作 | 在哪 |
-|---|---|
-| 加任务 | 今天页输入框，自然语言「明天下午3点交材料」 |
-| 勾选完成 | 点任务前的圆圈 |
-| 自定义菜单 | 设置 → 菜单设置（或对 AI 助手说「隐藏内容室」） |
-| 换 AI 网关/Key | 设置 → AI 助手接入 |
-| 手动备份 | 设置 → 数据管理 → 立即备份 |
-| 改管理密码 | 编辑 `.env` 的 `NESTLIFE_ADMIN_PASSWORD` 后重启 |
+- **手动备份**：打开系统 → 设置 → 数据管理 → 「立即备份」
+- **自动备份**：每天 23:30（需要配置定时任务，见 [DEPLOY.md](./DEPLOY.md)）
+- **恢复**：设置 → 数据管理 → 点备份记录
+- **迁移到新电脑**：把整个数据目录拷走（位置看 [CONFIG.md](./CONFIG.md) 的 NESTLIFE_DATA），新机器指向它即可
 
 ---
 
-## 8. 备份与恢复
-
-- **自动备份**：每天 23:30（需配置定时任务，见 DEPLOY.md 第 5 节）
-- **手动备份**：设置 → 数据管理 → 立即备份（存在 `NESTLIFE_DATA/backups/`）
-- **恢复**：设置 → 数据管理 → 点备份记录恢复
-- **迁移到新机器**：拷贝整个 `NESTLIFE_DATA` 目录（默认 `~/.nestlife/data`），在新机器 `.env` 里指向它，重启即可
-
----
-
-## 9. 常见问题速查
+## 8. 常见问题速查
 
 | 现象 | 处理 |
 |---|---|
-| 启动报错 / `node:sqlite` 找不到 | Node 版本不够，升级到 ≥ 22.5 |
-| 端口被占用 `EADDRINUSE` | `.env` 改 `NESTLIFE_PORT=3101` 后重启 |
-| 页面打不开 / 白屏 | `curl http://localhost:3100/` 看是否有响应；确认端口没写错（不是 3000） |
-| 一直跳登录页 | 密码错误或 cookie 过期；忘了密码就改 `.env` 后重启 |
-| AI 显示「未接入」 | 设置 → AI 助手接入 → 填网关或一键接 OpenClaw（见第 6 节） |
-| 知识库/备份目录找不到 | 数据都在 `NESTLIFE_DATA`（默认 `~/.nestlife/data`） |
+| 启动报错 / node:sqlite 找不到 | Node 版本不够，回第 1 节升级到 ≥ 22.5 |
+| 端口被占用 | 编辑 `.env` 把 `NESTLIFE_PORT=3100` 改成 `3101`，重启 |
+| 浏览器打不开 / 白屏 | 确认第 4 节的 ✅ 标志都满足；地址是 3100（不是 3000） |
+| 一直跳登录页 | 密码错了；忘了就改 `.env` 的密码后重启 |
+| AI 显示「未接入」 | 正常，AI 是选配——设置 → AI 助手接入 按需配（见 DEPLOY.md） |
 
-> 详细排错见 [DEPLOY.md](./DEPLOY.md)。
+> 更多排错：[DEPLOY.md](./DEPLOY.md)
 
 ---
 
-## 10. 升级
+## 9. 升级到新版本
 
-1. 备份数据：拷贝 `NESTLIFE_DATA` 目录
-2. 用新版本覆盖源码（保留 `.env` 和 `NESTLIFE_DATA`）
-3. 重新构建：
-   ```bash
-   npm ci && npm run build
-   ```
-4. 重启服务（Docker：`docker compose up -d --build`；systemd：`sudo systemctl restart nestlife`）
+1. 先备份（设置 → 数据管理 → 立即备份）
+2. 用新版覆盖旧文件（**保留 `.env` 和数据目录**）
+3. 重新构建：`npm ci && npm run build`
+4. 重启（Docker：`docker compose up -d --build`）
