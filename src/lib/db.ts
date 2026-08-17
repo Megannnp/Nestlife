@@ -29,7 +29,9 @@ export function resetDbConnection() {
 export function getDb(): DatabaseSync {
   if (db) return db;
   fs.mkdirSync(DATA_DIR, { recursive: true });
+  try { fs.chmodSync(DATA_DIR, 0o700); } catch { /* 权限收紧失败不阻塞 */ }
   db = new DatabaseSync(DB_FILE);
+  try { fs.chmodSync(DB_FILE, 0o600); } catch { /* 同上 */ }
   db.exec(`
     CREATE TABLE IF NOT EXISTS workspace (
       id INTEGER PRIMARY KEY CHECK (id = 1),

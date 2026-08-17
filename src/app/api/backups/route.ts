@@ -35,6 +35,7 @@ export async function POST(req: Request) {
     const stamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}_${String(now.getHours()).padStart(2, "0")}${String(now.getMinutes()).padStart(2, "0")}${String(now.getSeconds()).padStart(2, "0")}`;
     const dest = path.join(BACKUP_DIR, `nestlife-${stamp}.db`);
     fs.copyFileSync(DB_FILE, dest);
+    try { fs.chmodSync(dest, 0o600); } catch { /* 权限收紧失败不阻塞 */ }
     return NextResponse.json({ ok: true, name: `nestlife-${stamp}.db` });
   }
 
@@ -52,6 +53,7 @@ export async function POST(req: Request) {
       fs.copyFileSync(DB_FILE, path.join(BACKUP_DIR, `nestlife-pre-restore-${stamp}.db`));
     }
     fs.copyFileSync(src, DB_FILE);
+    try { fs.chmodSync(DB_FILE, 0o600); } catch { /* 同上 */ }
     // 强制重连，避免旧连接读到缓存页（恢复后前端刷新即见新数据）
     resetDbConnection();
     return NextResponse.json({ ok: true, restored: file });

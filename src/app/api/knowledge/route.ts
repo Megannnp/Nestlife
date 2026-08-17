@@ -96,9 +96,8 @@ export async function POST(req: Request) {
         return NextResponse.json({ ok: true, dir });
       }
       return NextResponse.json({ error: "unknown action" }, { status: 400 });
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      return NextResponse.json({ error: msg }, { status: 500 });
+    } catch {
+      return NextResponse.json({ error: "操作失败" }, { status: 500 });
     }
   }
 
@@ -152,9 +151,8 @@ export async function POST(req: Request) {
       relPath: abs.slice(KB_DIR.length + 1),
       size: buf.length,
     });
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
-    return NextResponse.json({ error: msg }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "操作失败" }, { status: 500 });
   }
 }
 

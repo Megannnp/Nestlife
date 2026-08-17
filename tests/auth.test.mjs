@@ -101,3 +101,28 @@ test("登录限流：连续失败后锁定（429）", async () => {
   });
   assert.equal(res.status, 429, "连续失败后应 429");
 });
+
+test("全局限流：伪造 X-Forwarded-For 换 IP 无法绕过", async () => {
+  // 攻击者每请求伪造不同 XFF IP，按 IP 限流无效 → 由全局兜底限流拦截
+  let lastStatus = 0;
+  for (let i = 0; i < 30; i++) {
+    const res = await fetch(`${BASE}/api/auth/login`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-forwarded-for": `203.0.113.${i + 1}`,
+      },
+      body: JSON.stringify({ password: "wrong" }),
+    });
+    lastStatus = res.status;
+  }
+  assert.equal(lastStatus, 429, "换 IP 连续失败后仍应被全局限流 429");
+});
+
+test("敏感 API 响应不缓存（no-store）", async () => {
+  const res = await fetch(`${BASE}/api/workspace`);
+  assert.ok(
+    (res.headers.get("cache-control") || "").includes("no-store"),
+    "受保护 API 应返回 Cache-Control: no-store"
+  );
+});

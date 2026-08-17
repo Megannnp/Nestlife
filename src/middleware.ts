@@ -11,13 +11,19 @@ import { sessionTokenFor, safeEqual, SESSION_COOKIE_NAME } from "./lib/auth.ts";
  */
 
 export async function middleware(req: NextRequest) {
-  if (process.env.NESTLIFE_AUTH !== "1") return NextResponse.next();
+  // 统一禁止缓存：页面/API 均为私有动态数据（含个人数据），防中间代理缓存泄露
+  const noStore = (res: NextResponse) => {
+    res.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+    return res;
+  };
+
+  if (process.env.NESTLIFE_AUTH !== "1") return noStore(NextResponse.next());
 
   const { pathname } = req.nextUrl;
 
   // 放行：认证接口、登录页、静态资源
-  if (pathname === "/api/auth/login" || pathname === "/api/auth/logout") return NextResponse.next();
-  if (pathname === "/login") return NextResponse.next();
+  if (pathname === "/api/auth/login" || pathname === "/api/auth/logout") return noStore(NextResponse.next());
+  if (pathname === "/login") return noStore(NextResponse.next());
   if (pathname.startsWith("/_next/") || pathname === "/icon.svg" || pathname === "/favicon.ico") {
     return NextResponse.next();
   }
@@ -28,16 +34,16 @@ export async function middleware(req: NextRequest) {
     ? safeEqual(token, await sessionTokenFor(expected))
     : false;
 
-  if (valid) return NextResponse.next();
+  if (valid) return noStore(NextResponse.next());
 
   // API → 401 JSON；页面 → 重定向登录页
   if (pathname.startsWith("/api/")) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    return noStore(NextResponse.json({ error: "unauthorized" }, { status: 401 }));
   }
   const url = req.nextUrl.clone();
   url.pathname = "/login";
   url.searchParams.set("next", pathname);
-  return NextResponse.redirect(url);
+  return noStore(NextResponse.redirect(url));
 }
 
 export const config = {

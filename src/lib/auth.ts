@@ -60,3 +60,28 @@ export function recordLoginFailure(ip: string) {
 export function clearLoginFailures(ip: string) {
   loginAttempts.delete(ip);
 }
+
+/** ═══ 全局兜底限流（防伪造 X-Forwarded-For 绕过按 IP 限流） ═══ */
+const MAX_GLOBAL_FAILURES = 30;
+const GLOBAL_WINDOW_MS = 10 * 60 * 1000;
+let globalFailures: { count: number; windowStart: number } = { count: 0, windowStart: Date.now() };
+
+export function checkGlobalLoginLock(): { locked: boolean; retryAfterSec?: number } {
+  const now = Date.now();
+  if (now - globalFailures.windowStart > GLOBAL_WINDOW_MS) {
+    globalFailures = { count: 0, windowStart: now };
+  }
+  if (globalFailures.count >= MAX_GLOBAL_FAILURES) {
+    return { locked: true, retryAfterSec: Math.ceil((GLOBAL_WINDOW_MS - (now - globalFailures.windowStart)) / 1000) };
+  }
+  return { locked: false };
+}
+
+/** 记录一次全局失败（任何来源/任何伪装 IP） */
+export function recordGlobalLoginFailure() {
+  const now = Date.now();
+  if (now - globalFailures.windowStart > GLOBAL_WINDOW_MS) {
+    globalFailures = { count: 0, windowStart: now };
+  }
+  globalFailures.count += 1;
+}

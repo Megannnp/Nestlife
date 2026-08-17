@@ -21,6 +21,7 @@ const TEXT_EXT = new Set([
   ".html", ".py", ".yml", ".yaml", ".csv", ".xml", ".sql", ".sh",
 ]);
 const IMAGE_EXT = new Set([".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg"]);
+const MAX_READ_BYTES = 10 * 1024 * 1024; // 单次读取上限 10MB（防大文件拖垮内存）
 
 /** GET：读取文件内容 */
 export async function GET(req: Request) {
@@ -38,6 +39,9 @@ export async function GET(req: Request) {
 
   if (TEXT_EXT.has(ext)) {
     const stat = fs.statSync(abs);
+    if (stat.size > MAX_READ_BYTES) {
+      return NextResponse.json({ error: "文件过大（>10MB），请在本地编辑" }, { status: 413 });
+    }
     const isBig = stat.size > 100_000;
     const full = searchParams.get("full") === "1"; // 阅读器需要全文
     let content = "";
@@ -46,6 +50,10 @@ export async function GET(req: Request) {
   }
 
   if (IMAGE_EXT.has(ext)) {
+    const stat = fs.statSync(abs);
+    if (stat.size > MAX_READ_BYTES) {
+      return NextResponse.json({ error: "图片过大（>10MB）" }, { status: 413 });
+    }
     const buf = fs.readFileSync(abs);
     const mime = ext === ".svg" ? "image/svg+xml" : ext === ".jpg" ? "image/jpeg" : `image/${ext.slice(1)}`;
     return NextResponse.json({ name: path.basename(abs), ext, size: buf.length, image: `data:${mime};base64,${buf.toString("base64")}` });
@@ -74,6 +82,9 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
   const { path: rel, content = "" } = await req.json();
   if (!rel) return NextResponse.json({ error: "path required" }, { status: 400 });
+  if (typeof content === "string" && content.length > MAX_READ_BYTES) {
+    return NextResponse.json({ error: "内容过大（>10MB）" }, { status: 413 });
+  }
   const abs = safeResolve(rel);
   if (!abs) return NextResponse.json({ error: "not allowed" }, { status: 403 });
   const ext = path.extname(abs).toLowerCase();
