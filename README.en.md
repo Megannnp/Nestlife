@@ -36,7 +36,24 @@ Most "life management" tools either keep your data in the cloud or fragment your
 - **Let AI do real work**: an optional AI execution layer lets you operate the whole system in natural language (tasks / decisions / menus), with cloud or local models
 - **Stay minimal**: white cards, thin borders, direct information — no flashy dashboards
 
+## 👋 Where to start (1 minute)
+
+**What this is**: a personal growth & career management app that runs on your own machine — your data stays with you, works offline.
+
+**Pick the doc that matches you**:
+
+| You are… | Read this |
+|---|---|
+| Already installed — just want to use it | **[USAGE.md](./USAGE.md) How to use** (plain language) |
+| Installing it yourself (needs a terminal) | **[INSTALL.md](./INSTALL.md) Install** (step by step) |
+| Configured it — want to change settings (password / AI / data location) | **[CONFIG.md](./CONFIG.md) Config** |
+| Something broke | **[DEPLOY.md](./DEPLOY.md) Troubleshoot** |
+
+> Free for personal / non-commercial use; a commercial license is only required for organizations / commercial use (see the end of this file).
+
 ## Quick Start
+
+> ⚠️ The steps below need a terminal. Not comfortable with one? Ask a tech-savvy friend to install it for you, or use Docker Desktop (GUI).
 
 Requires **Node.js ≥ 22.5** (built-in `node:sqlite`) or Docker.
 
