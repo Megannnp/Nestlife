@@ -55,6 +55,8 @@
 
 > ⚠️ 下面几步需要命令行操作。完全不会命令行？可以请懂电脑的朋友帮忙装，或用 Docker Desktop（图形界面）。
 
+**macOS 最快**：解压交付包后**双击 `install.command`** 即可——自动装依赖、生成密码、启动、打开浏览器（详见 [INSTALL.md](./INSTALL.md) 第 2.5 节）。
+
 需要 **Node.js ≥ 22.5**（依赖内置 `node:sqlite`）或 Docker。
 
 ```bash
