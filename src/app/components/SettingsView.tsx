@@ -17,6 +17,9 @@ export function SettingsView({ workspace, updateSchedule, resetAll }: SettingsVi
   const [backups, setBackups] = useState<BackupInfo[]>([]);
   const [backupNotice, setBackupNotice] = useState("");
 
+  // 手机/局域网访问信息（自动检测 IP + 登录密码，替代"问管理员"）
+  const [netInfo, setNetInfo] = useState<{ ips: string[]; port: number; authEnabled: boolean; password: string } | null>(null);
+
   // AI 网关配置（设置页直接填写，无需改 .env）
   const [aiInfo, setAiInfo] = useState<{ enabled: boolean; source: string; url: string; hasToken: boolean; openclaw?: { detected: boolean; url: string; port: number } } | null>(null);
   const [aiUrl, setAiUrl] = useState("");
@@ -54,10 +57,18 @@ export function SettingsView({ workspace, updateSchedule, resetAll }: SettingsVi
       .catch(() => {});
   };
 
+  const refreshNetInfo = () => {
+    fetch("/api/network-info")
+      .then((r) => r.json())
+      .then((d) => setNetInfo(d))
+      .catch(() => {});
+  };
+
   useEffect(() => {
     refreshBackups();
     refreshAiConfig();
     refreshNav();
+    refreshNetInfo();
   }, []);
 
   const saveAiConfig = async () => {
@@ -215,6 +226,39 @@ export function SettingsView({ workspace, updateSchedule, resetAll }: SettingsVi
         <div className="section-label">设置</div>
         <h1 className="text-[22px] font-bold text-[#18181B] mt-1">设置</h1>
         <p className="text-[13px] text-[#71717A] mt-2">系统信息与数据管理。数据存储于 SQLite，AI 助手 可读写全部数据。</p>
+      </section>
+
+      {/* 手机/局域网访问信息（自动检测，替代"问管理员"） */}
+      <section className="workspace-pane">
+        <div className="section-label mb-3">📱 手机访问</div>
+        {netInfo && netInfo.ips.length > 0 ? (
+          <div className="flex flex-col gap-2">
+            {netInfo.ips.map((ip) => (
+              <div key={ip} className="flex items-center gap-2 text-[13px] flex-wrap">
+                <span className="text-[#71717A] shrink-0">访问地址</span>
+                <code className="bg-[#F4F4F5] rounded-[8px] px-2.5 py-1 font-mono text-[12px] text-[#18181B]">
+                  http://{ip}:{netInfo.port}
+                </code>
+              </div>
+            ))}
+            {netInfo.authEnabled ? (
+              <div className="flex items-center gap-2 text-[13px] flex-wrap">
+                <span className="text-[#71717A] shrink-0">登录密码</span>
+                <code className="bg-[#F4F4F5] rounded-[8px] px-2.5 py-1 font-mono text-[12px] text-[#18181B]">
+                  {netInfo.password || "（未设置）"}
+                </code>
+              </div>
+            ) : (
+              <p className="text-[12px] text-[#DC2626]">⚠️ 当前未启用登录认证，局域网内任何设备都能访问你的数据</p>
+            )}
+            <p className="text-[11px] text-[#A1A1AA] leading-[1.6]">
+              手机连和这台电脑同一个网络，在浏览器打开上面的地址，输入密码即可使用。
+              本机（localhost）访问免登录。改密码/换端口见 <code className="font-mono">CONFIG.md</code>。
+            </p>
+          </div>
+        ) : (
+          <p className="text-[12px] text-[#A1A1AA]">未检测到局域网地址（可能不在线或没有网络连接）</p>
+        )}
       </section>
 
       {/* 时刻表管理 */}

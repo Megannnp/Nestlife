@@ -95,6 +95,20 @@ NESTLIFE_OPENCLAW_TOKEN=你的token
 
 不配 AI 完全没关系——AI 页显示「未接入」，其他功能照常。
 
+#### 以 DeepSeek 为例：拿到 API Key 的详细步骤（在线问答 / 对话即执行用）
+
+1. **注册账号**：浏览器打开 `platform.deepseek.com`，用手机号或邮箱注册并登录
+2. **充值**：左上角「充值」→ 充 10~50 元（对话很便宜，够用很久；按量计费，不用不扣钱）
+3. **创建 Key**：左侧菜单「API Keys」→「创建 API Key」→ 起个名字（如 `nestlife`）→ 创建
+4. **复制 Key**：创建后页面会显示一串以 `sk-` 开头的密钥，**点复制**（只会完整显示这一次，务必先复制好）
+5. **填进 NestLife**：打开系统 → 设置 → AI 助手接入 → 填：
+   - 网关地址：`https://api.deepseek.com/v1/chat/completions`
+   - API Key：粘贴刚复制的 `sk-...`
+6. 点「保存并启用」→ 完成，去 AI 助手页说句话试试
+
+> 注意：Key 是"钥匙"，别发给别人、别贴到公开地方。泄漏了在 DeepSeek 后台删掉重建一个即可。
+> 离线方案（不用充值、不联网）：装 Ollama 后网关填 `http://localhost:11434/v1/chat/completions`，Key 留空。
+
 ### 2.3 数据目录 / 端口
 
 ```env
