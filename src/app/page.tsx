@@ -232,14 +232,23 @@ export default function Home() {
   }, [update]);
 
   const toggleTask = useCallback((taskId: string) => {
-    update((w) => ({
-      ...w,
-      tasks: w.tasks.map((t) =>
-        t.id === taskId
-          ? { ...t, status: t.status === "done" ? "todo" : "done", completedAt: t.status === "done" ? undefined : todayStr() }
-          : t
-      ),
-    }));
+    update((w) => {
+      const t = w.tasks.find((x) => x.id === taskId);
+      if (!t) return w;
+      const nextStatus = t.status === "done" ? "todo" : "done";
+      const completedAt = nextStatus === "done" ? todayStr() : undefined;
+      // 立即持久化（不等 800ms 防抖 + keepalive 防刷新时请求被取消）：点击完成后立刻刷新也不丢状态
+      void fetch("/api/tasks", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        keepalive: true,
+        body: JSON.stringify({ id: taskId, patch: { status: nextStatus, completed_at: completedAt ?? null } }),
+      }).catch(() => {});
+      return {
+        ...w,
+        tasks: w.tasks.map((x) => (x.id === taskId ? { ...x, status: nextStatus, completedAt } : x)),
+      };
+    });
   }, [update]);
 
   const removeTask = useCallback((taskId: string) => {
