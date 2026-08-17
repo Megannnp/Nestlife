@@ -51,7 +51,9 @@ npm ci && npm run build
 NESTLIFE_AUTH=1 NESTLIFE_ADMIN_PASSWORD=your-password npm run start -- -p 3100
 ```
 
-The first launch auto-initializes (default menus / schedule / habits) — zero config to start using.
+The first launch auto-initializes (default menus / schedule / habits) — zero config to start using. See [INSTALL.md](./INSTALL.md) for full setup.
+
+**Access from phone / other devices**: open `http://<server-ip>:3100` in a browser on the same network and sign in with the password set via `NESTLIFE_ADMIN_PASSWORD` (`localhost` on the server itself needs no login). See [USAGE.md](./USAGE.md) for daily usage.
 
 ## AI Assistant (optional)
 

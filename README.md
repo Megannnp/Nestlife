@@ -53,6 +53,8 @@ NESTLIFE_AUTH=1 NESTLIFE_ADMIN_PASSWORD=你的密码 npm run start -- -p 3100
 
 首次打开自动初始化（默认菜单 / 时刻表 / 习惯），零配置即可使用。完整安装步骤见 [INSTALL.md](./INSTALL.md)。
 
+**手机 / 其他设备访问**：同一网络下浏览器打开 `http://<服务器IP>:3100`，输入 `NESTLIFE_ADMIN_PASSWORD` 设置的密码登录（本机 `localhost` 免登录）。日常用法见 [USAGE.md](./USAGE.md)。
+
 ## AI 助手（可选，按需选档）
 
 | 需求 | 配置 |
