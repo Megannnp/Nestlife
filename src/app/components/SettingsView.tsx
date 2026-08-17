@@ -157,6 +157,40 @@ export function SettingsView({ workspace, updateSchedule, resetAll }: SettingsVi
     setTimeout(() => setBackupNotice(""), 3000);
   };
 
+  /** 导出 JSON：优先复制剪贴板（HTTPS/localhost 可用）；非安全环境（手机经局域网 http 访问）回退为下载文件 */
+  const exportJson = () => {
+    const json = JSON.stringify(workspace, null, 2);
+    const d = new Date();
+    const stamp = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard
+        .writeText(json)
+        .then(() => {
+          setBackupNotice("✅ 已复制 JSON 到剪贴板");
+          setTimeout(() => setBackupNotice(""), 3000);
+        })
+        .catch(() => downloadJson(json, stamp));
+    } else {
+      downloadJson(json, stamp);
+    }
+  };
+
+  const downloadJson = (json: string, stamp: string) => {
+    try {
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `nestlife-export-${stamp}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setBackupNotice(`✅ 已导出 nestlife-export-${stamp}.json`);
+      setTimeout(() => setBackupNotice(""), 3000);
+    } catch {
+      setBackupNotice("⚠️ 导出失败，请用备份功能");
+    }
+  };
+
   const doRestore = async (name: string) => {
     if (!confirm(`恢复备份 ${name}？\n当前数据会先自动备份。`)) return;
     const res = await fetch("/api/backups", {
@@ -369,8 +403,8 @@ export function SettingsView({ workspace, updateSchedule, resetAll }: SettingsVi
         <div className="section-label mb-3">数据管理</div>
         <div className="flex items-center gap-3">
           <button className="secondary-button" onClick={doBackup}>💾 立即备份</button>
-          <button className="secondary-button" onClick={() => { navigator.clipboard.writeText(JSON.stringify(workspace, null, 2)); }}>
-            导出数据（复制 JSON）
+          <button className="secondary-button" onClick={exportJson}>
+            导出数据（复制 JSON / 下载）
           </button>
           {confirmReset ? (
             <div className="flex items-center gap-2">
