@@ -95,6 +95,25 @@ NESTLIFE_OPENCLAW_TOKEN=你的token
 
 不配 AI 完全没关系——AI 页显示「未接入」，其他功能照常。
 
+#### OpenClaw 是干嘛的？要不要装它？
+
+**一句话：普通 AI 只动嘴，OpenClaw 让它动手。**
+
+NestLife 自己带了一个"小手脚"（内置执行器），所以**不装 OpenClaw 也能"对话即执行"**；OpenClaw 是"更全的手脚"：
+
+| | 大脑（负责想） | 手脚（负责做） |
+|---|---|---|
+| **最简组合**（推荐先用这个） | DeepSeek / Ollama | **NestLife 内置**：完成/加任务、记决策、查今日、搜知识、看工作区（6 类操作） |
+| **完整组合**（想要 AI 更能干） | DeepSeek 等模型 | **OpenClaw**：读任意文件、执行命令、接插件(MCP) |
+
+**OpenClaw 能干嘛**：读/写任意文件（"读一下我的 DASHBOARD"）、执行命令（"跑一下备份"）、接插件扩展。你的专属 AI 助手（Mira）就是跑在 OpenClaw 上的。
+
+**怎么选**：
+- 先用**最简组合**跑起来（不装 OpenClaw，DeepSeek 注册拿 Key 就够），觉得 AI 能力不够再装 OpenClaw。
+- 装好 OpenClaw 后，设置页点「⚡ 一键接入」切换过去即可。
+
+**注意**：设置页配了 DeepSeek 时，AI 会走**内置执行器**（不经过 OpenClaw）；想用 OpenClaw 完整能力，就保持设置页不配、直接用「⚡ 一键接入」。
+
 #### 以 DeepSeek 为例：拿到 API Key 的详细步骤（在线问答 / 对话即执行用）
 
 1. **注册账号**：浏览器打开 `platform.deepseek.com`，用手机号或邮箱注册并登录
