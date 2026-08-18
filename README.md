@@ -76,11 +76,15 @@ NESTLIFE_AUTH=1 NESTLIFE_ADMIN_PASSWORD=你的密码 npm run start -- -p 3100
 
 ## AI 助手（可选，按需选档）
 
-| 需求 | 配置 |
-|---|---|
-| 在线问答 | 设置页填 DeepSeek 等任意 OpenAI 兼容端点 |
-| 离线问答 | 装 Ollama，指向 `http://localhost:11434/v1/chat/completions` |
-| 对话即执行 | 装 OpenClaw 后设置页「⚡ 一键接入」 |
+> **装 NestLife 本身不需要装任何 AI 软件**（不用 OpenClaw、不用 Ollama）。不配 AI，任务 / 复盘 / 知识 / 决策全部照常使用。
+
+| 需求 | 配置 | 要装软件吗 |
+|---|---|---|
+| 在线问答 / 对话即执行 | 设置页填 DeepSeek（任意 OpenAI 兼容端点） | ❌ 不用装，注册拿 Key 即可 |
+| 离线问答（数据不出机器） | 装 Ollama，指向 `http://localhost:11434/v1/chat/completions` | 装 Ollama（免费，可选） |
+| 完整执行（读任意文件/命令） | 装 OpenClaw 后设置页「⚡ 一键接入」 | 装 OpenClaw（可选增强） |
+
+> 「对话即执行」（说句话自动管理任务）已内置——DeepSeek / Ollama 都能直接做到，**不需要 OpenClaw**；OpenClaw 只是想要"读文件、执行命令"等更完整能力时才装。
 
 未配置 AI 时，任务 / 复盘 / 知识 / 决策等功能完全不受影响。详见 [DEPLOY.md](./DEPLOY.md)。
 

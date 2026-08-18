@@ -191,6 +191,22 @@ nohup npm run start -- -p 3100 > nestlife.log 2>&1 &
 
 ---
 
+## 5.5 关于 AI 助手：装 NestLife 不需要装任何 AI
+
+**不用装 OpenClaw、不用装 Ollama、不用装任何 AI 软件。** 没配 AI，任务 / 复盘 / 知识 / 决策等功能**全部照常使用**（AI 页会显示"未接入"）。
+
+要用 AI 时，三种选配（详细步骤见 [CONFIG.md](./CONFIG.md)）：
+
+| 想要什么 | 怎么做 | 要装软件吗 |
+|---|---|---|
+| 在线问答 / 说句话自动管理任务 | DeepSeek 网页注册 → 拿 API Key → 设置页填 | ❌ 不用装 |
+| 离线（数据不出机器） | 装 Ollama → 设置页填 localhost:11434 | 装 Ollama（免费，可选） |
+| 更完整执行（读文件/命令） | 装 OpenClaw → 设置页「⚡ 一键接入」 | 装 OpenClaw（可选增强） |
+
+> 「对话即执行」是 NestLife 内置能力——DeepSeek 或 Ollama 都能直接做到，**不需要 OpenClaw**。
+
+---
+
 ## 6. 手机 / 其他设备访问（可选）
 
 1. 让手机和这台电脑连**同一个 Wi-Fi**

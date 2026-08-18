@@ -54,9 +54,9 @@
 
 ---
 
-## 5. AI 助手：动嘴不动手
+## 5. AI 助手：动嘴不动手（可选）
 
-配好 AI 之后（设置页填 DeepSeek/Ollama/OpenClaw 任选），你就能"说"了：
+配好 AI 之后（设置页填 DeepSeek/Ollama 任选），你就能"说"了。**配 AI 不用装软件**——在线方案（DeepSeek）网页注册拿个 Key 填进设置页就行；Ollama/OpenClaw 是想要离线或更完整能力时才装（可选）。
 
 | 你说 | AI 帮你做 |
 |---|---|
